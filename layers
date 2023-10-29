@@ -1,0 +1,78 @@
+from matrices import mm
+
+class Layer:
+    def __init__(self):
+       self._input = None
+       self._output = None
+       self.dE_dO = None
+       self.dE_dI = None
+       self.NNindex = None
+       
+    def forward(self, _input):
+        pass
+    
+    def backward(self, dE_dO, rate):
+        pass
+    
+    def getType(self):
+        pass
+    
+    def setIndex(self, num):
+        self.NNindex = num
+
+class Hidden(Layer):
+    def __init__(self, neurons):
+        self.neurons = neurons
+        self.weights = None
+        self.NLbiases = None
+        
+    def forward(self, inp):
+        if self.weights == None:
+            return inp
+        else:
+            outp = mm.summatrix(mm.dotprod(self.weights, inp), self.NLbiases)
+            self._input = mm.copy(inp)
+            self._output = mm.copy(outp)
+            return outp
+    
+    def backward(self, dE_dO, rate):
+        if self.weights == None:
+            return dE_dO
+        else:
+            inp = mm.copy(self._input)
+            weights = mm.copy(self.weights)
+            dE_dW = mm.dotprod(dE_dO, mm.transpose(inp))
+            dE_dI = mm.dotprod(mm.transpose(weights), dE_dO)
+            self.weights = mm.submatrix(self.weights, mm.scalematrix(dE_dW, rate))
+            self.NLbiases = mm.submatrix(self.NLbiases, mm.scalematrix(dE_dO, rate))
+            return dE_dI
+
+    def getType(self):
+        return "Hidden"
+    
+    def setWeights(self, newWeights):
+        self.weights = newWeights
+        
+    def setBiases(self, newBiases):
+        self.NLbiases = newBiases
+        
+    def getNeurons(self):
+        return self.neurons 
+
+
+class ReLU(Layer):
+    def forward(self, inp):
+        self._input = mm.copy(inp)
+        for row in inp:
+            for item in range(mm.dim(inp)[1]):
+                row[item] = max(0.01*row[item], row[item])
+        self._output = mm.copy(inp)
+        return inp
+    
+    def backward(self, dE_dO, rate):
+        f_prime = mm.copy(self._input)
+        for row in f_prime:
+            for item in range(mm.dim(f_prime)[1]):
+                row[item] = 1 if row[item] > 0 else row[item]*0.01
+        dE_dI = mm.hadamard(dE_dO, f_prime)
+        return dE_dI
