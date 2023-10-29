@@ -1,0 +1,146 @@
+import random
+
+class mm:
+    
+    @staticmethod
+    def makematrix(rows, columns, num=None):
+        matrix = []
+        for i in range(rows):
+            matrixrow = []
+            for j in range(columns):
+                matrixrow.append(num if type(num) != list else random.uniform(num[0], num[1]))
+            matrix.append(matrixrow)
+        return matrix
+    
+    @staticmethod
+    def dotprod(a, b):
+        matrix = []
+        if mm.dim(a)[1] != mm.dim(b)[0]:
+            return "\nError: cannot compute dot product with given matrix dimensions"
+        for a_row in range(mm.dim(a)[0]):
+            mrow = []
+            for b_col in range(mm.dim(b)[1]):
+                temp = 0 
+                for a_col in range(mm.dim(a)[1]):
+                    temp += a[a_row][a_col] * b[a_col][b_col]
+                mrow.append(temp)
+            matrix.append(mrow)
+        return matrix
+    
+    @staticmethod
+    def summatrix(a, b):
+        if mm.dim(a) != mm.dim(b):
+            return "\nError: cannot compute sum with given matrix dimensions"
+        matrix = []
+        for row in range(mm.dim(a)[0]):
+            mrow = []
+            for x in range(mm.dim(a)[1]):
+                mrow.append(a[row][x] + b[row][x])
+            matrix.append(mrow)
+        return matrix
+    
+    @staticmethod
+    def submatrix(a, b):
+        if mm.dim(a) != mm.dim(b):
+            return "\nError: cannot compute difference with given matrix dimensions"
+        matrix = []
+        for row in range(mm.dim(a)[0]):
+            mrow = []
+            for x in range(mm.dim(a)[1]):
+                mrow.append(a[row][x] - b[row][x])
+            matrix.append(mrow)
+        return matrix
+    
+    @staticmethod
+    def scalematrix(a, scalar):
+        matrix = mm.copy(a)
+        for row in matrix:
+            for item in range(mm.dim(matrix)[1]):
+                row[item] *= scalar
+        return matrix
+    
+    @staticmethod
+    def raise_power(a, indice):
+        matrix = mm.copy(a)
+        for row in matrix:
+            for item in range(mm.dim(matrix)[1]):
+                row[item] **= indice
+        return matrix  
+    
+    @staticmethod
+    def hadamard(a, b):
+        if mm.dim(a) != mm.dim(b):
+            return "\nError: cannot compute hadamard with given matrix dimensions"
+        matrix = []
+        for row in range(mm.dim(a)[0]):
+            mrow = []
+            for x in range(mm.dim(a)[1]):
+                mrow.append(a[row][x] * b[row][x])
+            matrix.append(mrow)
+        return matrix
+    
+    @staticmethod
+    def transpose(a):
+        matrix = []
+        for col in range(mm.dim(a)[1]):
+            mrow = []
+            for row in range(mm.dim(a)[0]):
+                mrow.append(a[row][col])
+            matrix.append(mrow)
+        return matrix
+
+    @staticmethod
+    def msError(output, val_true):
+        diff = mm.submatrix(output, val_true)
+        return mm.scalematrix(mm.raise_power(diff, 2), (1/mm.dim(output)[0]))
+
+    @staticmethod
+    def dE_dO(output, val_true):
+        diff = mm.submatrix(output, val_true)
+        return mm.scalematrix(diff, (2/mm.dim(output)[0]))
+    
+    @staticmethod
+    def dim(matrix):
+        rows = len(matrix)
+        if type(matrix[0]) == int:
+            col = 1
+        else:
+            col = len(matrix[0])
+        return rows, col
+    
+    @staticmethod
+    def alter_dim(matrix, newdim):
+        newmatrix = mm.copy(matrix)
+        if newdim[0] == 1:
+            return [newmatrix]
+        elif newdim[1] == 1:
+            for i in range(len(newmatrix)):
+                newmatrix[i] = [newmatrix[i]]
+            return newmatrix
+        else:
+            print("weird input")
+            
+    @staticmethod
+    def copy(a):
+        newmatrix = []
+        if mm.dim(a)[1] == 1:
+           newmatrix = a.copy()
+           return newmatrix
+        else: 
+            for row in a:
+                mrow = []
+                for item in range(mm.dim(a)[1]):
+                    mrow.append(row[item])
+                newmatrix.append(mrow)
+            return newmatrix  
+        
+    @staticmethod
+    def testrand(size):
+        c = 0
+        l = []
+        while c<size:
+            l.append(c)
+            c+= 1
+            
+        random.shuffle(l)
+        return l
