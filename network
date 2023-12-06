@@ -1,23 +1,52 @@
 from matrices import mm
 from layers import *
 
-class NN:
-    def __init__(self):
+class NeuralNetwork:
+    savedNetworks = []
+    file = open("savedNetwork.txt", "r")
+    for i in file:
+        savedNetworks.append(i[:-1])
+    file.close()
+    
+    @classmethod
+    def view_saved(cls):
+        for item in cls.savedNetworks[::2]:
+            print(item, end  = ". ")
+            
+    @staticmethod
+    def upload_saved(name):
+        if name not in NeuralNetwork.savedNetworks:
+            return f"Error: '{name}' does not exist."
+        else:
+            index = NeuralNetwork.savedNetworks.index(name)
+            cont = eval(NeuralNetwork.savedNetworks[index+1])
+            network = NeuralNetwork(name)
+            for layer in cont:
+                if layer[0] == "Hidden":
+                    temp = Hidden(layer[1])
+                    temp.setWeights(layer[2])
+                    temp.setNLbiases(layer[3])
+                elif layer[0] == "ReLU":
+                    temp = ReLU()
+                network.addLayer_no_initialising(temp)
+            return network
+            
+    def __init__(self, name):
         self.layers = []
-        
+        self.name = name
+             
     def addLayer(self, layerObject):
         layerObject.setIndex(len(self.layers))
         self.layers.append(layerObject)
-        if len(self.layers) > 2:
-            if layerObject.getType() == "Hidden" and self.layers[-3].getType() == "Hidden":
-                xavier = 1/(self.layers[-3].getNeurons())
-                self.layers[-3].setWeights(mm.makematrix(layerObject.getNeurons(), self.layers[-3].getNeurons(), [-xavier, xavier]))
-                #XAVIER INITIALISATION
-                self.layers[-3].setBiases(mm.makematrix(layerObject.getNeurons(), 1, 0.01))
-
-    def popLayer(self):
-        self.layers.pop()
-        
+        if len(self.layers) > 2 and layerObject.getType() == "Hidden" and self.layers[-3].getType() == "Hidden":
+            xavier = 1/(self.layers[-3].getNeurons())
+            self.layers[-3].setWeights(mm.makematrix(layerObject.getNeurons(), self.layers[-3].getNeurons(), [-xavier, xavier]))
+            #XAVIER INITIALISATION
+            self.layers[-3].setNLbiases(mm.makematrix(layerObject.getNeurons(), 1, 0.01))
+                
+    def addLayer_no_initialising(self, layerObject): #does not initialise
+        layerObject.setIndex(len(self.layers))
+        self.layers.append(layerObject)
 
     def propagate_forwards(self, inp):
         for layer in self.layers:
@@ -44,4 +73,65 @@ class NN:
                 print(c)
             for i in nums:  
                 self.learn(mm.alter_dim(data[i], [0, 1]), mm.alter_dim(results[i], [0, 1]), rate)
+                
+    def saveNN(self):
+        if self.name in NeuralNetwork.savedNetworks:
+            print("Network of this name already exists.")
+        else:
+            allLayers = []
+            for layer in self.layers:
+                layerInfo = []
+                layerInfo.append(layer.getType())
+                if layer.getType() == "Hidden":
+                    layerInfo.append(layer.getNeurons())
+                    layerInfo.append(layer.getWeights())
+                    layerInfo.append(layer.getNLbiases())
+                allLayers.append(layerInfo)
+            file = open("savedNetwork.txt", "a")
+            file.write(f"{self.name}\n{allLayers}\n")
+            file.close()
+            NeuralNetwork.savedNetworks.append(self.name)
+            NeuralNetwork.savedNetworks.append(str(allLayers))
+        
+'''
+Neural Network class, class of the actual neural network, has layer objects added into it.
 
+savedNetworks is all nn which have been saved to txt file. Can be uploaded to use  (to propagate forward). Initialised at start to contain all saved networks,
+but when new nns are saved, they get appended to this too. List consists of the nns name, and the following item is anoter list of its content. This list has
+more lists containing the layers. If ReLU, only one item which is layer type. If Hidden, first item is type, second is the number of neurons of layer, third
+is the weights and fourth is biases. This essentially is all the information needed to create the saved nn.
+
+view_saved, class method, displays the names of all saved nns.
+
+upload_saved, static method, error check if name not in saved list, otherwise returns the saved network by creating it with saved data.
+
+attributes: initialises name, nn object has a list containing all the layer objects in the nn. The layer also gets its index attribute of where it is in the list,
+allows for connections to be made between Hiddens.
+
+addLayer, adds layer object to nn object. Layer list of object updated, as is layer objects index in list. If a Hidden is added and there is a Hidden two layers
+before (before the previous ReLU), then it must connect. Weights has dimensions determined by both layers number of neurons, randomly initialised XAVIER INITIALISATION,
+good for relus. Biases determined by number of neurons of second layer, initialised all as 0.01 apparently good for relus too. This however is info sent to first layer,
+as it uses it but second doesnt. The first layer with the weights and biases of next layer can use these to propagate forwards with relevant formulae.
+
+addLayer_no_initialising, addds layer objetc without initialising the weights and biases. This is needed when uploading a saved nn, as we dont want weights and biases
+to initialise randomly but rather take on the values that are saved.
+
+propagate_forwards: takes input as input of nn. Feeds this in to first layer, gets its output, uses the output as input for next layer and so on until output of the 
+whole nn is found. This is returned.
+
+propagate_backwards: takes the rate of change of error dE with respect to the output of the nn, and also learning rate. Feeds this into last layer to propagate backwards with.
+The layer returns the dE/dInput, which is just the dE/dOutput for the previous layer. Goes through every layer like this. As a layer propagates backwards, it is updating its
+weights and biases using the dE/dO and relevant formulae. The learning rate is also given to the layers, dictates how drastically the weight and biases are changing. Prevents
+overshooting/undershooting local minima in gradient descent.
+
+learn: Runs one single learing cycle.Takes input, the answer to the input and the rate. Runs forward propagation with input to find NNs output. Calculates the dE/dO of
+the NN with the output and true value (mean square error). This along with learning rate used to run backward propagation, to fix the NN from this one cycle.
+
+training: Runs multiple learning cycles from data set. Gets data set, results set, learning rate, and number of epochs/cycles. For each item in data set, the item along
+with corresponding true value have one learning cycle ran on them (with leartning rate taken into consideration). The whole data set is trained with like this for the
+specified number of cycles. The data set is shuffled with each cycle.
+
+saveNN: if NN of same name already exists in set, cant save. Prevents fiff faff. Otherwise, for each layer, get the info (type, if Hidden then neurons, weights, biases).
+Append this to a list, write it to a file, add it to class list of all saved netoworks too.
+
+'''
