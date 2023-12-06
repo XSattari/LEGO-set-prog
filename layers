@@ -53,8 +53,14 @@ class Hidden(Layer):
     def setWeights(self, newWeights):
         self.weights = newWeights
         
-    def setBiases(self, newBiases):
+    def getWeights(self):
+        return self.weights
+        
+    def setNLbiases(self, newBiases):
         self.NLbiases = newBiases
+        
+    def getNLbiases(self):
+        return self.NLbiases
         
     def getNeurons(self):
         return self.neurons 
@@ -76,3 +82,6 @@ class ReLU(Layer):
                 row[item] = 1 if row[item] > 0 else row[item]*0.01
         dE_dI = mm.hadamard(dE_dO, f_prime)
         return dE_dI
+    
+    def getType(self):
+        return "ReLU"
