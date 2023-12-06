@@ -1,0 +1,60 @@
+from NN import NeuralNetwork 
+import time
+import random
+from matrices import mm
+from layers import *
+import numpy as np
+
+def timer():
+    start_time = time.perf_counter()
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print("Elapsed time: ", elapsed_time)
+#timer()
+
+def main():
+    
+    data = [[0, 0], [0, 1], [1, 0], [1, 1]]
+    results = [[0], [1], [1], [0]]
+    obj0 = Hidden(2)
+    obj1 = ReLU()    
+    obj2 = Hidden(10)
+    obj3 = ReLU()
+    obj4 = Hidden(10)
+    obj5 = ReLU()
+    obj6 = Hidden(10)
+    o7 = ReLU()
+    o8 = Hidden(10)
+    o9 = ReLU()
+    o10 = Hidden(1)
+    nt = NeuralNetwork("MY_NN")
+    nt.addLayer(obj0)
+    nt.addLayer(obj1)
+    nt.addLayer(obj2)
+    nt.addLayer(obj3)
+    nt.addLayer(obj4)
+    nt.addLayer(obj5)
+    '''
+    nt.addLayer(obj6)
+    nt.addLayer(o7)    
+    nt.addLayer(o8)
+    nt.addLayer(o9)
+    '''
+    nt.addLayer(o10)
+    nt.training(data, results, 0.001 , 10000)
+    
+    print(nt.propagate_forwards([[0], [0]]))
+    print(nt.propagate_forwards([[1], [0]]))
+    print(nt.propagate_forwards([[0], [1]]))
+    print(nt.propagate_forwards([[1], [1]]))
+    
+
+
+def m(a):
+    for i in a:
+        print(i)
+    print("\n")
+
+main()
+
+
