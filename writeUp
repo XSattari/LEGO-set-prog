@@ -1,1 +1,303 @@
 https://www.overleaf.com/read/hhjspyhtddhq
+
+
+
+
+\input{localstuff}
+
+\fancyhead[LO]{Waiss Sattari}
+\fancyhead[RE]{Lego Set Sort}
+\fancyhead[RO, LE]{\thepage}
+
+\hyphenation{
+    hy-phe-na-tion
+    num-bered
+}
+\usepackage{graphicx}
+\graphicspath{ {./Images/} }
+\usepackage{listings}
+
+\raggedbottom
+\begin{document}
+
+\thispagestyle{empty}
+
+\begin{center}
+    \LARGE\headingfont{\textbf{Lego Set Sort \linebreak The project for my A-level NEA}}
+\end{center}
+
+\begin{center}
+\vspace{4pt}
+\large
+    Waiss Sattari  
+    
+\small
+   Woodhouse College 
+\end{center}
+
+\tableofcontents
+
+\section{Analysis}
+\subsection{Problem background} % talk about lego sets missing pieces etc [1]
+
+LEGOs, according to the Encyclopedia Britannica, are \textit{"plastic building-block toys that rose to massive popularity in the mid-20th century"} \footnote[1]{https://www.britannica.com/topic/LEGO}. These tiny plastic pieces come in a range of shapes and colours, which allow them to be combined to create whatever one can imagine. The company \emph{LEGO} sells these bricks generally as parts of a set, where all the Lego pieces required to create a certain build are boxed together to be purchased and assembled by a consumer; not unlike a jigsaw puzzle.\bigskip
+
+However, also similar to a jigsaw puzzle, pieces from a Lego set can go missing, rendering the final build incomplete. Furthermore, pieces from different sets could become jumbled up, which would require a tedious process of sorting through every single Lego piece, trying to remember which pieces your set requires and how many, to find all the pieces of a particular set.\bigskip
+
+This is the problem I aim to solve. My project intends to aid with sorting through Lego pieces, to know which pieces belong to what set, and identify those pieces which are missing so that the user may know what pieces to purchase to complete their set. Such a task can only be performed with the use of a machine learning model, to be able to differentiate between different LEGO pieces. Thus my project will revolve around creating a program that utilises AI to perform the desired task.\bigskip
+
+The end user would of course be LEGO enthusiasts, people who own multiple LEGO sets and face the issues of jumbled up sets and missing pieces. One such LEGO enthusiast is a teenager named Jonah. Jonah owns his fair share of LEGO sets, and has agreed to answer some questions for my research into the requirements of my "Lego Set Sort" program.
+
+\subsection{Research}
+\paragraph*{End-user aided research\\\\}
+
+
+Thanks to Jonah's experience and LEGO knowledge, he has been able to provide information which I may find useful for improving my problem solution, and also present some small requirements of the project for it to be of any use to someone like him. Following a conversation with Jonah, I have been able to identify some key points for consideration:\bigskip 
+\begin{itemize}
+    \item Every LEGO set contains a manual with building instructions, and towards the end of this manual there is a section containing information on each constituent LEGO piece within the set, including amount and LEGO number. There is a PDF for all of these online, which can be found through the official website. With this, the constituent LEGO pieces and their amounts could possibly be copy pasted from the PDF by the user into the program when they are uploading their set information pre-sorting.\bigskip
+    \item It is likely the user will be sorting the same set more than once e.g. over a large time period to ensure no pieces were lost. Thus it would be efficient if the program can store the data on previous sets sorted, so the set information does not have to be input each time. \bigskip
+    \item Since it is usually the case that multiple sets are jumbled up together, the program should be able to sort LEGO pieces against multiple different sets at the same time, meaning it can scan a piece and identify which of many sets it belongs to, and separate accordingly. \bigskip
+    \item The aforementioned LEGO number is an identification number and is unique to every LEGO piece, so this number would be great to use within the program to differentiate between every piece. Utilising this information would also be useful as the user may use this number to easily search for and purchase any missing pieces online, so as to complete their set (e.g. through a website like www.toypro.com, where you can search for a piece by LEGO number to purchase.)\bigskip
+\end{itemize}
+This provided information allows for implementations which would not only make my project more efficient, but would also make it of actual use to the targeted audience, so taking these points into consideration when making my requirements are paramount.
+
+\paragraph*{Convolutional Neural network research\\\\}% MLM research
+
+As previously mentioned, being able to differentiate between different LEGO pieces in the process of sorting is only possible through use of a machine learning model, which will be the focus of my project. For this, I will need to implement a specific type of neural network, a convolutional neural network (CNN for short), and my neural network will use supervised learning. The following paragraphs encompass some of the research I have done on what these are for the purpose of creating my own CNN. The research I have done spanned over many hours, so I will not go into too much detail and will only provide some key points.\bigskip
+
+Firstly, what is a machine learning? Machine learning works to uncover the underlying relationship within given data. In the case of the project it would be to find the patterns of lines/edges of images of LEGO pieces, to know which pieces have what features so as to differentiate between them. A machine learning model can be considered as a function: It takes in inputs and returns an output, and has multiple parameters (weights and biases) which it may change to alter the outputs it produces. It is not a fixed function but rather one which is 'trained' on historical data so as to best perform the task it was created for. The training can be 'supervised' or unsupervised', but the only one I am concerned with is supervised learning, as it is how I will train my model for my project.\bigskip
+
+In supervised learning, data is fed into our model with a 'label' of the desired output so that the model can learn and tweak its parameters to improve . If we call our machine learning model \(f(x)\), and the desired outputs as \(y\), then the goal is to have our model's output as close to the desired output such that \(f(x) \approx y\) (no models can claim 100 \% accuracy so it is always an approximation). The model learns against the data and it's labels which we feed in, which is why it is called 'supervised' learning. In my case that would require feeding in images of LEGO pieces along with the LEGO number as a label. However, there are many different types of LEGO pieces, and this training process requires thousands of images to train on to be remotely accurate so it would be difficult to take and label all of these images, both expensive and tedious. Luckily, this problem can be overcome through training on virtual data, using images generated from 3D renders of pieces. It can produce more images with less effort than if I were taking images myself and as long as the 3D models are similar enough to physical LEGO pieces, the neural network won't know the difference, meaning it can train on them.\bigskip
+
+A neural network is a subset of machine learning and it's structure is inspired by the human brain, with nodes as neurons connected in layers together to form outputs from inputs. There can be as many layers and nodes in these layers as needed, with an input layer, an output layer, and 'hidden' or 'dense' layers between them which is where the function occurs. When you input data into the network, you 'propagate' forward through the network layer by layer until the end, where an output is produced. Every node between two layers are fully connected, and these connections have a weight assigned to them. To find the value at a particular neuron, you sum the product of all neurons in the previous layer multiplied by the weight, and add the sum to a bias. You then pass this value through an activation function like sigmoid, tanh or ReLU which introduces non-linearity to the network, allowing for a more complex function. There are many neurons and connections in a neural network, so one would imagine all of these computations to be long and strenuous, however the process is simplified as the neurons and the weights / biases can be represented as matrices, thus the relevant computations may be tackled with vector calculations. If we call the matrix of our neurons of the first layer \(X\) of dimensions \(i \cdot 1\), the matrix of neurons of the second layer \(Y\) with dimensions \(j \cdot 1\), the matrix containing all weights between these layers as \(W\) with dimensions \(j \cdot i\), the matrix of biases as \(B\) with dimensions \(j \cdot 1\) and the activation function as \(\sigma\), we can write the equation for forward propagation as \[Y =\sigma(WX + B)\] The weights and biases are the parameters of the function, they dictate the output and thus may be tweaked to improve the output of the neural network.
+
+\begin{center}
+\includegraphics[width=16cm]{Images/nodes.png}
+\bigskip
+\includegraphics[width=16cm]{Images/equation.png}
+\end{center}
+These images, taken from The Independent Code on YouTube\footnote{\url{https://youtu.be/pauPCy_s0Ok}} show this. From the first image, we can see how the neurons from the first layer are multiplied to their weights, summed, and added to a bias to find the value of a neuron in the second layer. The second image shows how these may be written in vector form. The images do not display an activation function; The Independent Code, who created the diagrams, believes that the activation function could be treated as its own layer, an activation layer, which exists between two dense layers. It essentially works the same, the output of propagating forwards in the first layer undergoes the activation function in the activation layer, and then this result is fed into the second layer as input. The Independent Code chooses to do it this way as he argues that it makes the relevant code for forward and backward propagation a lot easier.\bigskip
+
+Tweaking the weights and biases is done while testing through a process called back-propagation. It is called this because the process starts from the end of the network, and works its way to the start layer by layer while making the changes to the weights and biases. When our neural network takes input and runs it's course, it compares the output with the desired output on the label of the test data. It finds a cost function by finding the squares of the differences of the outputs with the desired output, and the goal is to minimise this cost by changing the weights and biases. This is gradient descent, and involves finding the derivative of the cost function and using this to find other derivatives via chain rule to find equations showing how much the weights and biases of a layer must change by in order to decrease the cost function. I will not go into detail about it, nor the derivation of relevant equations, but the equations are used to tweak the parameters so as to minimise the cost function. When making the changes, we use a variable called the learning rate to determine how drastically we make our changes, which has a value that we decide on. How drastically we change the values may lead to overshooting or undershooting the perfect, desired values of our parameters, and so affects the rate at which our network learns. Thus, picking the right value for the learning rate is key to minimise the time of learning of the neural network.\bigskip
+
+A convolutional neural network is a type of neural network specialised for dealing with images. It is a neural network with an added convolutional layer, and the network may use multiple of these layers. A convolutional layer involves taking the image and running a convolution on it using a 'filter' otherwise called a 'kernel'. The kernel is slid along the pixels of the image, with the values of the pixels in the kernel and the image it overlaps multiplied, summed, added to a bias, and passed through an activation to find the value of the pixel of a new image. Once the kernel has fully slid along the whole surface of the image, a new image is generated. Multiple kernels may be used since different kernels can extract different patterns from the image, and these generated new images may then be pooled (essentially made smaller) e.g. through max pooling, which splits the image into equally sized boxes, and takes the largest value pixel from each of these to construct a smaller image. This process extracts dominant features and reduces dimensionality of the image to make it easier to compute. The smaller images are then flattened into a vector so that they be passed into a normal neural network, and an output is produced in the end using the softmax classification technique (a technique which simply scales outputs into probabilities). The pixel values of the kernels introduce yet another set of parameters which can be tweaked during back-propagation, along with their biases of course.\bigskip
+
+\begin{center}
+\includegraphics[width=16cm]{Images/CNNexample.png}
+\end{center}
+The image features a visual representation of the constituent layers which may make up a CNN, showing how the image size is made smaller going through layer by layer. It also decomposes the process into two main tasks, feature learning where we are extracting relevant patterns and features from the image, and classification where we run these into dense layers to identify what the image is representing.\bigskip
+
+Sources I have used for my full research include:
+\begin{itemize}
+\item LeetCode machine learning 101- \url{https://leetcode.com/explore/learn/card/machine-learning-101/287/what_is_ml/}
+\item A Comprehensive Guide to Convolutional Neural Networks- \url{https://saturncloud.io/blog/a-comprehensive-guide-to-convolutional-neural-networks-the-eli5-way/}
+\item 3blue1brown- \url{https://youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi}
+\item far1din- \url{https://youtube.com/playlist?list=PL1sQgSTcAaT7MbcLWacjsqoOQvqzMdUWg}
+\item The Independent Code- \url{https://youtu.be/pauPCy_s0Ok}
+\end{itemize} 
+
+\paragraph*{Existing solutions\\\\}
+
+There are no current solutions to my exact problem of sorting LEGO pieces by set as far as I can find searching online, though there does exist LEGO sorting machines which sort Lego pieces by colour or piece type. They do not feature a user interface to interact with the neural network as mine will, nor the functionality dedicated to the task of sorting by set, but the AI they use in identifying the LEGO piece to sort is the same as what I aim to create for my project, so in that regard it is similar.\bigskip
+
+
+One of the most popular of these is the "Universal LEGO Sorting Machine" created by a man named Daniel West, which he features in a semi-viral video on YouTube\footnote{"The WORLD'S FIRST Universal LEGO Sorting Machine": \url{https://youtu.be/04JkdHEX3Yk}}. In the video we see the impressive hardware dedicated to the task of moving and physically sorting the bricks, but this is not a focus of my own project. He does not go into detail about the software aspect of his build in this video. However, on his YouTube channel, West has another video uploaded which does, a video dedicated to the AI of his machine\footnote{"LEGO Sorter AI: How Does It Work?": \url{https://youtu.be/-UGl0ZOCgwQ}}. \bigskip 
+
+
+In this video, we see that Daniel West also utilises a convolutional neural network, and see he also tackles the problem of getting thousands of labeled training data by using 'synthetic data', computer generated images with labels attached. Unfortunately however, West explains that using this synthetic data does not work due to a problem he calls the "Sim-to-Real problem", where the subtle differences in things like lighting, shadow and texture in the generated images- things we may not pick up on ourselves- throws the neural network off completely. He claims that the problem remains unsolved, but that he was able to use a technique published from a paper in 2017 to get around the problem, called Domain Randomisation. The gist of it is that instead of trying to create generated images which match the physical LEGO pieces perfectly, we generate images with a large range of randomised colour, lighting, background and material, and use these images instead to train the neural network. Because of the large variation, the CNN is able to pick up on the underlying relationships of the data better, so as to not be thrown off by subtle differences in texture and lighting anymore- building what West calls "much better quality connections in the brain", so performing better in recognising physical Lego pieces.\bigskip
+
+
+Daniel West then goes on to explain how he further improves his results by "Fine Tuning", where he takes a small number of real life LEGO images and does a bit more learning with these to essentially fine tune the neural network. He claims that it results in much more accurate predictions even if only a small number of images are used in this step. Learning from Daniel West's solution will greatly improve my own. Utilising domain randomisation in my own machine learning model will be integral in getting it to actually function, as I now know that generated images by themselves do not work. The fine tuning step will also significantly enhance my own results, and overall will lead to a more accurate convolutional neural network.
+
+\subsection{Proposed solution} % my project
+
+ For the AI to interact with the physical world and "see" the piece it is working with, there is need of a camera. It would therefore be effective if the program is run from a mobile device, as these are widely available (nearly everyone owns a mobile phone) and so would be convenient for the target audience. It would eliminate the need to purchase extra hardware which would make it more cost effective for them, and also for myself in the creation and testing of this program. Modern phones also have decent computational power, enough to run the CNN, which makes it a better alternative than something like a raspberry pi which might require connecting to a PC to run the neural network.\bigskip
+
+On the topic of hardware, the physical process of actually sorting through the LEGO bricks is of course crucial to the purpose of my project -since the problem it aims to solve is with the difficulty of manually sorting- yet I do not want it to be my project's focus; The hardware aspect would derive its quality more so from the amount of money spent on purchasing the parts and time assembling them- less so through my own skills. Thus, I am not concerned with physical efficiency. At the bare bones my project's purpose is to identify LEGO pieces and relay to the user whether or not it is part of a set, so as to aid with a person sorting, instead of tackling the entire process itself. That said, having a way to at least partially automate the sorting process would be desirable to the purpose and functionality of my project, so could be left as a potential upgrade for the far future.\bigskip
+
+My solution will feature a mobile application, where the end user inputs the information of the set(s) they possess including pieces, amount required and amount currently owned. Storing this data will be done through a hash-map data structure. They can begin a "sorting process" to sort against one or more of their sets, where the front camera of the phone, and the convolutional neural network, is utilised. The user takes a temporary photo of the Lego through the application, which gets processed by the CNN. Once the sorting process terminates, the user is provided with the data of the sort, and the set information may be updated.\bigskip
+
+My convolutional neural network will be made in Python using Visual Studio, as well as things like the data structures used in the program. I picked Python as many websites rank it first place for "Best language for Machine Learning"\footnote{One such of these websites is https://www.springboard.com/blog/data-science/best-language-for-machine-learning/}, but also as it is a language I am proficient in. Furthermore, it is an object oriented programming language, which is a great paradigm to use for a CNN as it features many loosely related types of layers. The graphical user interface of the program will be tackled using Kotlin in Android Studio, since Kotlin has advantages over Python in mobile development such as a faster compile time. I will use Blender to generate the testing images to train my CNN, using any 3D models of Lego pieces I may find, while also using a few real images to fine tune my model.\bigskip
+
+My project does come with a few limitations. Of course, there are the time and monetary constraints- creating an AI and testing it on data to a satisfactory level of efficiency is a lengthy process, so given the time constraint my machine learning model may not be as accurate as I could make it. The monetary constraint is not too much of an issue given my project's software focus, but it does limit the Lego sets I may purchase to test or fine tune my machine learning model. Training my CNN to recognise even a single Lego piece would require a great load of images of that one piece, so time will also affect the number of different Lego pieces my CNN may learn to recognise, as will whether or not I am able to find a digital 3D model of certain Lego pieces. Thus, my machine learning model will be limited in the number of Lego pieces it may recognise. Another limitation is the efficiency in which the Lego piece information for existing Lego sets may be input into the system. It may prove tedious to have to manually input all the information, especially for large Lego sets. Ideally, my program would have a database of all of these existing Lego sets so the user won't have to manually enter the information themselves. This is a feature I will loosely employ, featuring only some popular Lego sets, as there are tens of thousands of official Lego sets out there and again, I am limited in time.\bigskip
+
+\subsection{Project objectives} % High+Low level requirements: machine learning models, ui, etc
+The following list is not in order of importance but rather the order in which it may be operated by a user. The most important aspect of my project is the convolutional neural network, followed by the GUI. The CNN needs only be created and trained, then added to the program. These objectives flesh out necessary processes and features in the actual operation of the program, which the user interacts with. High-level, important objectives are denoted with a H, while low-level, extra features are denoted with an L. After completing the creation of my convolutional neural network, I will build the program taking into account all of the H objectives, and once that is done I will incorporate as many of the L objectives as I can.\bigskip
+
+\begin{enumerate}
+    \item H. The user can run the program from an application on their mobile device.
+    \begin{enumerate}
+        \item H. Upon entering the application, the user is at a "home screen" where all of their sets are displayed by name.
+        \begin{enumerate}
+            \item H. Tapping on a set from the home screen takes the user to a separate screen where they can view all of the information for that set.
+            \item H. There is a separate button on their screen which allows them to begin a sorting process.
+        \end{enumerate}   
+    \end{enumerate}
+    \bigskip
+    
+    \item H. User can input the information of their sets.
+    \begin{enumerate}
+        \item H. Created sets and their information are stored on text files, which are updated whenever changes are made, or deleted when the set is removed.
+        \item H. User can "add new set", where they create their set to begin adding its information..
+        \begin{enumerate}
+            \item H. User given pop-up to create set, prompted to give the set a name.
+            \item H. If "cancel" button pressed, does not create the set. If "create" button pressed, text file created.
+            \item L. The user may choose to add an existing set, from a limited selection of official Lego sets stored on text files, which may be searched for by the user using the set ID.
+            \item L. The user may choose to save their own sets to a file like these, which can act as a backup if they delete their set.
+        \end{enumerate}
+        \item H. User can input the Lego pieces into their set.
+        \begin{enumerate}
+            \item H. User must input the Lego number of the piece, as well as the amount required in the set.
+            \item H. All of these pieces are stored in a hash-map data structure, which includes the colour and brick type of the Lego piece, as well as a small png image to display it.
+            \item L. The user may add multiple pieces at a time by pasting the information off of the online PDF of the building instructions of their set- instructions will be provided to the user of how to do this.
+            \item H. All items of the set display the image, Lego number, amount required, and amount currently owned, which is defaulted to zero when a Lego piece is added, but may be changed after by user.
+            \item H. After all changes are made, user must save changes with save button before they leave the screen of the particular set.
+            \item L. If they try to leave without saving, given pop-up to confirm or cancel changes made.
+            \item H. If saved, file containing set information is updated
+        \end{enumerate}
+        \item L. User is given options to alter/navigate their set.
+        \begin{enumerate}
+            \item H. The set name may be changed by the user, and pieces can always be added or removed.
+            \item L. The is an option to min or max the number of "currently owned" pieces for all Lego pieces in the set, meaning they can set this value to zero or the highest for all pieces.
+            \item L. There are filter options for the user to navigate their set info, such as filtering by colour or piece type.
+            \item L. The user can sort the Lego pieces by the amount of pieces owned, the percentage of the required amount owned, or by the required amount itself. 
+            \item These options may be sorted from low to high or from high to low.
+            \item L. The user is given basic statistics of their set, such as the number of different Lego pieces, the total amount of Lego pieces required/owned, and the percentage of "how complete" their Lego set is.
+        \end{enumerate}
+    \end{enumerate}
+    \bigskip
+    
+    \item H. The user can enter the "sorting process". This is started by pressing the button to begin sorting found on the home screen, and can be terminated by the user at any time with another button.
+    \begin{enumerate}
+        \item H. The user must sort against one or more of their inputted sets. 
+        \item L. If multiple sets are selected, the user may choose to prioritise sets, meaning that a Lego piece which could be from multiple sets is identified as being part of the priority set. 
+        \item L. If there are multiple priority sets, then an algorithm loops through each one by one with every shared Lego piece, so that it is evenly distributed between them. 
+        \item H. If no priority sets are selected, then the same algorithm is used to share the pieces evenly among all the sets.
+        \item H. When taking the temporary image of the Lego piece, the phone's flash is turned on. 
+        \item H. The user is prompted to use a white background, good angle, and only have the single piece in frame, which they are reminded of if the CNN is unable to recognise the Lego piece from the photo.
+        \item L. At the end of the sorting process, the user is given statistics such as the number of pieces found for each set and the number of redundant pieces. 
+        \item H. The user is also given the option to replace or increment the "currently owned" amount of pieces within a given set to the new number of pieces identified during the sorting process
+    \end{enumerate}
+    \bigskip
+    
+    \item H. During the sorting process, the program must be able to identify the Lego piece from the image it receives.
+    \begin{enumerate}
+        \item H. The image is fed into the convolutional neural network, which is trained to recognise the type of Lego piece in the image. 
+        \item H. A separate algorithm is responsible for deducing the colour of the Lego piece. 
+        \item H. This algorithm takes the pixel colour values from the image and compare them to the hexadecimal colour values of official Lego colours to determine the colour of the Lego piece. It must account for the white background and any shadows in the image.
+        \item H. Together, the brick type and colour are used to find the Lego number of the piece, stored in a hash-map data structure. 
+        \item L. If no items are found in the location, as previously mentioned, the program prompts the user to retake the image in better, specified conditions.
+    \end{enumerate}
+    \bigskip
+\end{enumerate}
+\section{Design}
+
+\subsection{The Convolutional Neural Network}
+
+\paragraph*{The Layer class\\\\}
+
+
+Neural networks are constructed from multiple layers, where data flows through each layer in forward or backward propagation. Implementing the AI for the program will involve creating these constituent layers, putting them together in a specific order to form a neural network, and finally training the neural network on data.\bigskip
+
+As mentioned in the \textit{Proposed Solution} section, the fact that the CNN is formed of different layers- some loosely related- makes OOP a great programming paradigm to use in creating the neural network. The different layers may be implemented as different classes, all of which inherit from an abstract class \textit{Layer} which has virtual methods for propagating forwards and backwards. The different children classes can override these methods with their different implementations of propagating, so as to be specialised for their purpose within the neural network. The different types of layers to be implemented are displayed below. \bigskip
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\multicolumn{1}{|c|}{Layer}   & \multicolumn{1}{c|}{Function}                                                                                                                       \\ [0.5ex] \hline \hline
+Hidden &
+  \begin{tabular}[c]{@{}l@{}}A layer of neurons. Contains the parameters which we tweak in training that\\  allows the neural network to make classifications.\end{tabular} \\ \hline
+ReLU &
+  \begin{tabular}[c]{@{}l@{}}Rectified Linear Activation, the activation function. Introduces non-linearity,\\  aids in complex pattern recognition.\end{tabular} \\ \hline
+Softmax &
+  \begin{tabular}[c]{@{}l@{}}Transforms the raw output of neural network into a probability distribution,\\  essentially gives the probability of all outputs. \end{tabular} \\ \hline
+Convolutional &
+  \begin{tabular}[c]{@{}l@{}}Extracts different patterns/features from an image, creates "feature maps".\\  These allow for better classification of original image.\end{tabular} \\ \hline
+Pooling &
+  \begin{tabular}[c]{@{}l@{}}Takes feature map from convolutional layer, reduces dimensionality\\  (makes image smaller) to decrease amount of computations required\end{tabular} \\ \hline
+\end{tabular}
+\end{table}
+
+\bigskip
+Each layer takes in an input and produces an output, which becomes the input for the layer after it. This can happen in forward propagation where the CNN tries to classify an image, or in backwards propagation where the layer calculates rates of change to use in updating parameters. Since all the layers share these attributes and methods, they may be implemented in the \textit{Layer} class, the  abstract class which all the layers in the CNN inherit from, as shown in the following inheritance diagram. \bigskip
+
+\begin{center}
+\includegraphics[width=14cm]{Images/Inheritance.png}
+\end{center}
+
+The layer class represented in class diagram form:\bigskip
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|}
+\hline
+\multicolumn{1}{|c|}{Layer}                                    \\ \hline
+\begin{tabular}[c]{@{}l@{}}input\\ output\\ dE\textunderscore dI\\ dE\textunderscore dO \end{tabular}         \\ \hline
+\begin{tabular}[c]{@{}l@{}}forward()\\ backward()\end{tabular} \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+The forward method takes in the input for the layer as a parameter- which is the output of the previous layer or the input image itself- and does stuff to it to create an output which is passed along.\bigskip
+
+
+In backwards propagation, the final layer calculates the rate of change of the error with respect to its output. Using this, the layer can find the rate of change of its parameters (e.g weights/biases) with respect to the error via chain rule, and so can change the parameters to decrease the error, which is the goal of training. The rate of change of the error with respect to output may also be used to calculate the rate of change of error with respect to its input, which is essentially the rate of change of error with respect to the output of the \textit{previous} layer, since the input of a layer is the output of a preceding layer. The preceding layer can then use this to change its own parameters and find the rate of change of error with respect to its own inputs, and this process carries on until every layer has updated its weights.\bigskip
+
+
+With this, we know that the backward method needs to take in the rate of change of error with respect to its output as a parameter, and uses it to update itself and calculate rate of change of error with respect to its input.\bigskip
+
+Overall, the attributes of a layer are its input, output, rate of change of error with respect to its input, and the rate of change of error with respect to its output (represented as \textit{dE\textunderscore dI} and \textit{dE\textunderscore dO} respectively). These values are not initialised with the layer, but are calculated as the neural network runs its course. Thus, the code to create our Layer abstract class ends up looking like this.\bigskip
+
+
+\begin{lstlisting}[language=Python]
+class Layer:
+    def __init__(self):
+       self._input = None
+       self._output = None
+       self.dE_dO = None
+       self.dE_dI = None
+       
+    def forward(self, _input):
+        pass
+    
+    def backward(self, dE_dO):
+        pass
+\end{lstlisting}
+\bigskip
+
+\paragraph*{Neural Network Class\\\\}
+
+The basic building blocks of the neural network, the different layers specified previously, must have a way of being connected to each other so as to perform their functions of forwards and backwards propagation. To achieve this, I will create a \textit{Neural Network class}. This will allow for the instantiation of a \textit{Neural Network object}, which will house the Layer objects in their specified order, and allow for the implementation of different neural network methods such as running, training, and saving state. \bigskip 
+
+
+There exists a \textit{has a} relationship, with a Neural Network object having many Layer objects related to it. There is no need for a layer to exist independently of a Neural Network; The layer only has a function when it is part of a neural network, and multiple neural networks cannot share the same layer as the parameter values of the layer will be unique and specialised for the neural network it exists in. Considering this, it would make more sense that the association between the objects is \textit{composition} and not \textit{aggregation}. This means that there is a strong relationship between a neural network object and a layer object that exists in it: The layer is only created to exist in the neural network that it is instantiated in, and serves no value if the neural network object that contains it ceases to exist. \bigskip 
+
+-INSERT ASSOCIATION DIAGRAM- \bigskip 
+
+Initialising a neural network object will require a name, to identify the NN. Upon initialisation, a \textit{Network_Layers} list will be created, that stores all the layers in the neural network.
+As for the methods of the Neural Network Class, it will of course need the ability to initialise and add the different types of layers into the neural network object. With the layers, the NN class will need the fundamental operations of forward propagation and backwards propagation, where it propagates through every single layer one after the other and returns an output. Building on these two methods, the class will have a \textit{learn} method where it runs a single training cycle, and then from this a \textit{training} method where training data is used to run multiple training cycles. Once the neural network has completed training and is able to perform its task, it will need a way to be saved so that it can be used later without having to re-train it. Thus, a \textit{save_NN} and \textit{load_NN} method will be needed. For added functionality, the NN class will have a \textit{view_saved} method to view all saved neural networks so the user can know what NNs can be loaded, and this method will use a class variable list that exists to store all saved neural networks. \bigskip 
+
+
+
+\paragraph*{Dense Layer\\\\}
+
+Propagating forwards in a dense layer is explained in the research section of the analysis, and as was mentioned can be simplified by with vector calculations as the neurons, weights and biases can be represented as matrices. The equation for this is Y = W X + B where Y is the matrix of neurons of the first layer, X is the matrix of neurons of the second layer, W is the matrix of all weights between neurons of each dense layer and B is the matrix of biases of the second layer.\bigskip
+
+
+
+\end{document} 
+
+ NOTES:
+FIX FUNCITONALITY OF ADDING LAYERS V LOADING UP THEM. CHECK FOR PERIM VALS BEFORE INITIALISING A LAYER W THEM.
+
+Class method. Displays the names of all saved neural networks.
+
+
+Static method. Takes name of neural network as parameter. If a saved neural network exists
+
+with this name, then it loads the NN- initialises an object of this saved NN using the stored
+
+information of its layers and parameter values, creating an exact replica.
+
+
+Adds a layer to the neural network. Network-Layers list updated. 
