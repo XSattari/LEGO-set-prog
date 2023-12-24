@@ -1,0 +1,105 @@
+from matrices import mm
+from layers import *
+
+class NeuralNetwork2:
+    savedNetworks = []
+    file = open("savedNetwork.txt", "r")
+    for i in file:
+        savedNetworks.append(i[:-1])
+    file.close()
+    
+    @classmethod
+    def view_saved(cls):
+        for item in cls.savedNetworks[::2]:
+            print(item, end  = ". ")
+            
+    @staticmethod
+    def upload_saved(name):
+        if name not in NeuralNetwork2.savedNetworks:
+            return f"Error: '{name}' does not exist."
+        else:
+            index = NeuralNetwork2.savedNetworks.index(name)
+            cont = eval(NeuralNetwork2.savedNetworks[index+1])
+            uploadedNN = NeuralNetwork2(name)
+            for layer in cont:
+                uploadedNN.addLayer(layer)
+            return uploadedNN
+            
+    def __init__(self, name):
+        self.layers = []
+        self.name = name
+             
+    def addLayer(self, layer):
+        #layer[0] contains the layer type
+        if layer[0] == "ReLU":
+            layerObject = ReLU()
+        elif layer[0] == "Hidden":
+            layerObject = Hidden(layer[1]) #if the layer type is Hidden, will contain second item in list for number of neurons in this layer
+            #if layer list length is greater than two, means there are values to assign perimeters, so do not initialise.
+            if len(layer) > 2:
+                layerObject.setWeights(layer[2])
+                layerObject.setNLbiases(layer[3])
+            #otherwise, initialise perims of previous Hidden layer
+            elif len(self.layers) >= 2 and self.layers[-2].getType() == "Hidden":
+                xavier = 1/(self.layers[-2].getNeurons())
+                self.layers[-2].setWeights(mm.makematrix(layer[1], self.layers[-2].getNeurons(), [-xavier, xavier]))
+                #XAVIER INITIALISATION
+                self.layers[-2].setNLbiases(mm.makematrix(layer[1], 1, 0.01))
+        else:
+            return "Invalid layer type"
+        layerObject.setIndex(len(self.layers))
+        self.layers.append(layerObject)
+
+    def propagate_forwards(self, inp):
+        for layer in self.layers:
+            inp = layer.forward(inp)       
+        return inp
+    
+    def propagate_backwards(self, dE_dO, rate):
+        for layer in self.layers[::-1]:
+            dE_dO = layer.backward(dE_dO, rate)
+    
+    def learn(self, inp, val_true, rate):
+        inp = mm.copy(inp)
+        output = self.propagate_forwards(inp)
+        error = mm.msError(output, val_true)
+        dE_dO = mm.dE_dO(output, val_true)
+        self.propagate_backwards(dE_dO, rate)
+       
+    def training(self, data, results, rate, cycles):
+        c = 0
+        for cycle in range(cycles):
+            nums = mm.testrand(len(data))
+            c += 1
+            if c%1000 == 0:
+                print(c)
+            for i in nums:  
+                self.learn(mm.alter_dim(data[i], [0, 1]), mm.alter_dim(results[i], [0, 1]), rate)
+                
+    def saveNN(self):
+        if self.name in NeuralNetwork2.savedNetworks:
+            print("Network of this name already exists.")
+        else:
+            allLayers = []
+            for layer in self.layers:
+                layerInfo = []
+                layerInfo.append(layer.getType())
+                if layer.getType() == "Hidden":
+                    layerInfo.append(layer.getNeurons())
+                    layerInfo.append(layer.getWeights())
+                    layerInfo.append(layer.getNLbiases())
+                allLayers.append(layerInfo)
+            file = open("savedNetwork.txt", "a")
+            file.write(f"{self.name}\n{allLayers}\n")
+            file.close()
+            NeuralNetwork2.savedNetworks.append(self.name)
+            NeuralNetwork2.savedNetworks.append(str(allLayers))
+            
+    def displayLayers(self):
+        for layer in self.layers:
+            print(layer.getType())
+            if layer.getType() == "Hidden":
+                print(layer.getNeurons())
+                print(layer.getWeights())
+                print(layer.getNLbiases())
+        
