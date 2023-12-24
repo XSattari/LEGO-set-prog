@@ -1,4 +1,5 @@
 from NN import NeuralNetwork 
+from NN2 import NeuralNetwork2
 import time
 import random
 from matrices import mm
@@ -57,4 +58,19 @@ def m(a):
 
 main()
 
+data = [[0, 0], [0, 1], [1, 0], [1, 1]]
+results = [[0], [1], [1], [0]]
 
+n = NeuralNetwork2("nut")
+layers = [["Hidden", 2], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 1]]
+for layer in layers:
+    n.addLayer(layer)
+    
+#n.displayLayers()
+
+n.training(data, results, 0.001, 10000)
+
+print(n.propagate_forwards([[0], [0]]))
+print(n.propagate_forwards([[1], [0]]))
+print(n.propagate_forwards([[0], [1]]))
+print(n.propagate_forwards([[1], [1]]))
