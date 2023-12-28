@@ -56,21 +56,48 @@ def m(a):
         print(i)
     print("\n")
 
-main()
+#main()
 
-data = [[0, 0], [0, 1], [1, 0], [1, 1]]
-results = [[0], [1], [1], [0]]
+def main2():
+    data = [[0, 0], [0, 1], [1, 0], [1, 1]]
+    results = [[0], [1], [1], [0]]
 
-n = NeuralNetwork2("nut")
-layers = [["Hidden", 2], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 1]]
-for layer in layers:
-    n.addLayer(layer)
+    n = NeuralNetwork2("nut")
+    layers = [["Hidden", 2], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 1]]
+    for layer in layers:
+        n.addLayer(layer)
     
-#n.displayLayers()
+    #n.displayLayers()
 
-n.training(data, results, 0.001, 10000)
+    n.training(data, results, 0.001, 10000)
 
-print(n.propagate_forwards([[0], [0]]))
-print(n.propagate_forwards([[1], [0]]))
-print(n.propagate_forwards([[0], [1]]))
-print(n.propagate_forwards([[1], [1]]))
+    print(n.propagate_forwards([[0], [0]]))
+    print(n.propagate_forwards([[1], [0]]))
+    print(n.propagate_forwards([[0], [1]]))
+    print(n.propagate_forwards([[1], [1]]))
+    
+#main2()
+
+def proc():
+    mnist = []
+    file = open("mnist_train.csv", "r")
+    for i in file:
+        y = [0]*10
+        y[int(i[0])] = 1
+        x = list(map(lambda n: int(n)/255, i[:-1].split(",")[1:]))
+        mnist.append([x, y])
+    file.close()
+    return mnist
+
+'''
+mnist = proc()
+
+
+mNetwork = NeuralNetwork2("MNIST")
+layers = [["Hidden", 784], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 10]]
+for layer in layers:
+    mNetwork.addLayer(layer)
+    
+
+'''
+
