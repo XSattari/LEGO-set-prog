@@ -1,4 +1,5 @@
 from matrices import mm
+import math
 
 class Layer:
     def __init__(self):
@@ -8,7 +9,7 @@ class Layer:
        self.dE_dI = None
        self.NNindex = None
        
-    def forward(self, _input):
+    def forward(self, inp):
         pass
     
     def backward(self, dE_dO, rate):
@@ -75,7 +76,7 @@ class ReLU(Layer):
         self._output = mm.copy(inp)
         return inp
     
-    def backward(self, dE_dO, rate):
+    def backward(self, dE_dO):
         f_prime = mm.copy(self._input)
         for row in f_prime:
             for item in range(mm.dim(f_prime)[1]):
@@ -85,3 +86,16 @@ class ReLU(Layer):
     
     def getType(self):
         return "ReLU"
+
+class Softmax(Layer):
+    def forward(self, inp):
+        sumofexp = sum(map(lambda n: math.exp(n[0]), inp))
+        output = list(map(lambda n: [math.exp(n[0]) / sumofexp], inp))
+        self._output = mm.copy(output)
+        return output
+    
+    def backward(self, dE_dO):
+        pass
+    
+    def getType(self):
+        return "Softmax"
