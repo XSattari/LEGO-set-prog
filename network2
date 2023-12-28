@@ -28,23 +28,30 @@ class NeuralNetwork2:
     def __init__(self, name):
         self.layers = []
         self.name = name
+        #Index of latest hidden layer in nn, so as to be initialised with values if new hidden layer added
+        self.lastHidden = None
              
     def addLayer(self, layer):
         #layer[0] contains the layer type
-        if layer[0] == "ReLU":
-            layerObject = ReLU()
-        elif layer[0] == "Hidden":
-            layerObject = Hidden(layer[1]) #if the layer type is Hidden, will contain second item in list for number of neurons in this layer
-            #if layer list length is greater than two, means there are values to assign perimeters, so do not initialise.
+        if layer[0] == "Hidden":
+            layerObject = Hidden(layer[1])
+            #if the layer type is Hidden, will contain second item in list for number of neurons in this layer
+            #if layer list length is greater than two, means there are values to assign parameters, so do not initialise.
             if len(layer) > 2:
                 layerObject.setWeights(layer[2])
                 layerObject.setNLbiases(layer[3])
-            #otherwise, initialise perims of previous Hidden layer
-            elif len(self.layers) >= 2 and self.layers[-2].getType() == "Hidden":
-                xavier = 1/(self.layers[-2].getNeurons())
-                self.layers[-2].setWeights(mm.makematrix(layer[1], self.layers[-2].getNeurons(), [-xavier, xavier]))
+            #otherwise, initialise params of previous Hidden layer
+            elif self.lastHidden is not None:
+                n = self.lastHidden
+                xavier = 1/(self.layers[n].getNeurons())
+                self.layers[n].setWeights(mm.makematrix(layer[1], self.layers[n].getNeurons(), [-xavier, xavier]))
                 #XAVIER INITIALISATION
-                self.layers[-2].setNLbiases(mm.makematrix(layer[1], 1, 0.01))
+                self.layers[n].setNLbiases(mm.makematrix(layer[1], 1, 0.01))
+            self.lastHidden = len(self.layers)
+        elif layer[0] == "ReLU":
+            layerObject = ReLU()
+        elif layer[0] == "Softmax":
+            layerObject = Softmax()
         else:
             return "Invalid layer type"
         layerObject.setIndex(len(self.layers))
