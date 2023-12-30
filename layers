@@ -76,7 +76,7 @@ class ReLU(Layer):
         self._output = mm.copy(inp)
         return inp
     
-    def backward(self, dE_dO):
+    def backward(self, dE_dO, rate):
         f_prime = mm.copy(self._input)
         for row in f_prime:
             for item in range(mm.dim(f_prime)[1]):
@@ -90,12 +90,24 @@ class ReLU(Layer):
 class Softmax(Layer):
     def forward(self, inp):
         sumofexp = sum(map(lambda n: math.exp(n[0]), inp))
-        output = list(map(lambda n: [math.exp(n[0]) / sumofexp], inp))
-        self._output = mm.copy(output)
-        return output
+        outp = list(map(lambda n: [math.exp(n[0]) / sumofexp], inp))
+        self._output = mm.copy(outp)
+        return outp
     
-    def backward(self, dE_dO):
-        pass
+    def backward(self, dE_dO, rate):
+        #uses formula derived by the independant code: dE_dI = (M hadamard (I-M(transposed))). dE_dO
+        matrix = [i*len(self._output) for i in self._output]
+        dE_dI = mm.dotprod(mm.hadamard(matrix, mm.submatrix(mm.identity(len(self._output)), mm.transpose(matrix))), dE_dO)
+        return dE_dI
     
     def getType(self):
         return "Softmax"
+    
+'''
+NOTES: 
+- While neither the backpropagation method for the ReLU or Softmax classes utilise the "rate" parameter, it is still passed in during the backpropagation of all layers.
+Thus, it still needs to take it in even if it does nothing with it. Can I just change implementation so that only the Hidden layer gets it? Sure. Will I? No need. Easy roundabout.
+'''
+    
+
+
