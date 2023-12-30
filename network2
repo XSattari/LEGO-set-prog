@@ -74,14 +74,11 @@ class NeuralNetwork2:
         self.propagate_backwards(dE_dO, rate)
        
     def training(self, data, results, rate, cycles):
-        c = 0
         for cycle in range(cycles):
             nums = mm.testrand(len(data))
-            c += 1
-            if c%1000 == 0:
-                print(c)
             for i in nums:  
                 self.learn(mm.alter_dim(data[i], [0, 1]), mm.alter_dim(results[i], [0, 1]), rate)
+            print(cycle+1)
                 
     def saveNN(self):
         if self.name in NeuralNetwork2.savedNetworks:
@@ -105,8 +102,10 @@ class NeuralNetwork2:
     def displayLayers(self):
         for layer in self.layers:
             print(layer.getType())
+            
             if layer.getType() == "Hidden":
                 print(layer.getNeurons())
+                '''
                 print(layer.getWeights())
-                print(layer.getNLbiases())
+                print(layer.getNLbiases())'''
         
