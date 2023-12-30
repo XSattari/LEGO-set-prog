@@ -102,7 +102,7 @@ class mm:
     @staticmethod
     def dim(matrix):
         rows = len(matrix)
-        if type(matrix[0]) == int:
+        if type(matrix[0]) == int or type(matrix[0]) == float:
             col = 1
         else:
             col = len(matrix[0])
@@ -144,3 +144,12 @@ class mm:
             
         random.shuffle(l)
         return l
+    
+    @staticmethod
+    def identity(size):
+        matrix = []
+        for i in range(size):
+            row = [0]*size
+            row[i] = 1
+            matrix.append(row)
+        return matrix
