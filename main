@@ -79,25 +79,77 @@ def main2():
 #main2()
 
 def proc():
-    mnist = []
     file = open("mnist_train.csv", "r")
+    file2 = open("processedData.txt", "w")
     for i in file:
         y = [0]*10
         y[int(i[0])] = 1
         x = list(map(lambda n: int(n)/255, i[:-1].split(",")[1:]))
-        mnist.append([x, y])
+        item = [x, y]
+        file2.write(f"{str(item)}\n")
     file.close()
-    return mnist
+    file2.close()
 
-'''
-mnist = proc()
+    
+def retProc():
+    file2 = open("processedData.txt", "r")
+    data = []
+    for i in file2:
+        data.append(eval(i))
+    return data
 
-
-mNetwork = NeuralNetwork2("MNIST")
-layers = [["Hidden", 784], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 10]]
-for layer in layers:
-    mNetwork.addLayer(layer)
+def getMax(lis):
+    mx = 0
+    c = 0
+    tmp = 0
+    for i in lis:
+        if i > mx:
+            mx = i
+            tmp = c
+        c+=1
+    return tmp
     
 
+mnist = retProc()
+train = mnist[:1000]
+test = mnist[1000:2000]
+'''
+mNetwork = NeuralNetwork2("MNIST")
+#layers = [["Hidden", 784], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+layers = [["Hidden", 784], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+
+for layer in layers:
+    mNetwork.addLayer(layer)
+
+data = []
+results = []
+for i in train:
+    data.append(i[0])
+    results.append(i[1])
+    
+
+mNetwork.training(data, results, 0.1, 100)
+mNetwork.saveNN()
 '''
 
+
+n = NeuralNetwork2.upload_saved("MNIST")
+
+correct = 0
+total = 0
+for i in range(50000):    
+    outp = n.propagate_forwards(mm.alter_dim(mnist[1001+i][0], [0, 1]))
+    res = mnist[1001+i][1]
+    tmp = []
+    for i in outp:
+        tmp.append(i[0])
+    pred = getMax(tmp)
+    tru = getMax(res)
+    total += 1
+    if pred == tru:
+        correct +=1
+    if total%1000==0:
+        print(f"progress: {(total*100)/50000}% complete")    
+    
+accuracy = (correct*100)/total
+print(f"\nAccuracy of the neural network: {accuracy}%\n")
