@@ -1,5 +1,6 @@
 from matrices import mm
 from layers import *
+import time
 
 class NeuralNetwork2:
     savedNetworks = []
@@ -32,6 +33,7 @@ class NeuralNetwork2:
         self.lastHidden = None
              
     def addLayer(self, layer):
+        
         #layer[0] contains the layer type
         if layer[0] == "Hidden":
             layerObject = Hidden(layer[1])
@@ -48,12 +50,37 @@ class NeuralNetwork2:
                 #XAVIER INITIALISATION
                 self.layers[n].setNLbiases(mm.makematrix(layer[1], 1, 0.01))
             self.lastHidden = len(self.layers)
+            
+        elif layer[0] == "Convolutional":
+            layerObject = Convolutional(layer[1], layer[2], layer[3], layer[4])
+            if len(layer) > 5:
+                layerObject.setKernels(layer[5])
+                layerObject.setBiases(layer[6])
+            else:
+                kernels = []
+                biases = []
+                bias_size = ((layer[3][0]-layer[4][0]+1),(layer[3][1]-layer[4][1]+1))
+                for i in range(layer[2]):
+                    biases.append(mm.makematrix(bias_size[0], bias_size[1], [-1,1]))
+                    temp = []
+                    for j in range(layer[1]):
+                        temp.append(mm.makematrix(layer[4][0], layer[4][1], [-0.5, 0.5]))
+                    kernels.append(temp)
+                layerObject.setKernels(kernels)
+                layerObject.setBiases(biases)
+                    
         elif layer[0] == "ReLU":
             layerObject = ReLU()
+            
         elif layer[0] == "Softmax":
             layerObject = Softmax()
+            
+        elif layer[0] == "MaxPooling":
+            layerObject = MaxPooling(layer[1], layer[2])
+            
         else:
             return "Invalid layer type"
+        
         layerObject.setIndex(len(self.layers))
         self.layers.append(layerObject)
 
@@ -65,6 +92,7 @@ class NeuralNetwork2:
     def propagate_backwards(self, dE_dO, rate):
         for layer in self.layers[::-1]:
             dE_dO = layer.backward(dE_dO, rate)
+        return dE_dO
     
     def learn(self, inp, val_true, rate):
         inp = mm.copy(inp)
@@ -74,11 +102,19 @@ class NeuralNetwork2:
         self.propagate_backwards(dE_dO, rate)
        
     def training(self, data, results, rate, cycles):
+        start = 0
+        end=0
         for cycle in range(cycles):
+            if cycle == 0:
+                start = time.time()
+            if cycle == 9:
+                end = time.time()
             nums = mm.testrand(len(data))
             for i in nums:  
                 self.learn(mm.alter_dim(data[i], [0, 1]), mm.alter_dim(results[i], [0, 1]), rate)
             print(cycle+1)
+            if (cycle+1)%10 == 0:
+                print(f"Est time until completion: {(end-start)*(10-((cycle+1)/10))}")
                 
     def saveNN(self):
         if self.name in NeuralNetwork2.savedNetworks:
@@ -92,6 +128,16 @@ class NeuralNetwork2:
                     layerInfo.append(layer.getNeurons())
                     layerInfo.append(layer.getWeights())
                     layerInfo.append(layer.getNLbiases())
+                elif layer.getType() == "Convolutional":
+                    layerInfo.append(layer.getInput_depth())
+                    layerInfo.append(layer.getOutput_depth())
+                    layerInfo.append(layer.getInput_size())
+                    layerInfo.append(layer.getKernel_size())
+                    layerInfo.append(layer.getKernals())
+                    layerInfo.append(layer.getBiases())
+                elif layer.getType() == "MaxPooling":
+                    layerInfo.append(layer.getSize())
+                    layerInfo.append(layer.getStride())
                 allLayers.append(layerInfo)
             file = open("savedNetwork.txt", "a")
             file.write(f"{self.name}\n{allLayers}\n")
@@ -102,10 +148,19 @@ class NeuralNetwork2:
     def displayLayers(self):
         for layer in self.layers:
             print(layer.getType())
-            
+            '''
             if layer.getType() == "Hidden":
                 print(layer.getNeurons())
-                '''
+                
                 print(layer.getWeights())
-                print(layer.getNLbiases())'''
+                print(layer.getNLbiases())
+                
+            if layer.getType() == "Convolutional":
+                print(layer.getKernels())
+                print(len(layer.getKernels()))
+                print(layer.getBiases())'''
+                
+            if layer.getType() == "MaxPooling":
+                print(layer.getSize())
+                print(layer.getStride())
         
