@@ -56,7 +56,6 @@ def m(a):
         print(i)
     print("\n")
 
-#main()
 
 def main2():
     data = [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -75,8 +74,7 @@ def main2():
     print(n.propagate_forwards([[1], [0]]))
     print(n.propagate_forwards([[0], [1]]))
     print(n.propagate_forwards([[1], [1]]))
-    
-#main2()
+
 
 def proc():
     file = open("mnist_train.csv", "r")
@@ -110,46 +108,81 @@ def getMax(lis):
     return tmp
     
 
-mnist = retProc()
-train = mnist[:1000]
-test = mnist[1000:2000]
-'''
-mNetwork = NeuralNetwork2("MNIST")
-#layers = [["Hidden", 784], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
-layers = [["Hidden", 784], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+def MNIST_TRAIN():
+    mnist = retProc()
+    train = mnist[:1000]
 
-for layer in layers:
-    mNetwork.addLayer(layer)
+    mNetwork = NeuralNetwork2("MNIST2")
+    #layers = [["Hidden", 784], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+    layers = [["Hidden", 784], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Softmax"], ["Hidden", 10]]
 
-data = []
-results = []
-for i in train:
-    data.append(i[0])
-    results.append(i[1])
+    for layer in layers:
+        mNetwork.addLayer(layer)
+
+    data = []
+    results = []
+    for i in train:
+        data.append(i[0])
+        results.append(i[1])
     
 
-mNetwork.training(data, results, 0.1, 100)
-mNetwork.saveNN()
-'''
+    mNetwork.training(data, results, 0.01, 100)
+    mNetwork.saveNN()
 
 
-n = NeuralNetwork2.upload_saved("MNIST")
+def MNIST_TEST():
+    mnist = retProc()    
+    n = NeuralNetwork2.upload_saved("MNIST2")
 
-correct = 0
-total = 0
-for i in range(50000):    
-    outp = n.propagate_forwards(mm.alter_dim(mnist[1001+i][0], [0, 1]))
-    res = mnist[1001+i][1]
-    tmp = []
-    for i in outp:
-        tmp.append(i[0])
-    pred = getMax(tmp)
-    tru = getMax(res)
-    total += 1
-    if pred == tru:
-        correct +=1
-    if total%1000==0:
-        print(f"progress: {(total*100)/50000}% complete")    
+    correct = 0
+    total = 0
+    for i in range(50000):    
+        outp = n.propagate_forwards(mm.alter_dim(mnist[1001+i][0], [0, 1]))
+        res = mnist[1001+i][1]
+        tmp = []
+        for i in outp:
+            tmp.append(i[0])
+        pred = getMax(tmp)
+        tru = getMax(res)
+        total += 1
+        if pred == tru:
+            correct +=1
+        if total%500==0:
+            print(f"progress: {(total*100)/50000}% complete")    
     
-accuracy = (correct*100)/total
-print(f"\nAccuracy of the neural network: {accuracy}%\n")
+    accuracy = (correct*100)/total
+    print(f"\nAccuracy of the neural network: {accuracy}%\n")
+
+
+def dispM(matrix):
+    for i in matrix:
+        print(i)
+
+'''
+Inp = [mm.makematrix(3, 3, 10),mm.makematrix(3, 3, 5)]
+Ip = [mm.makematrix(3, 3, 4),mm.makematrix(3, 3, 4)]
+n = NeuralNetwork2("nut")
+n.addLayer(["Convolutional", 2, 3, (3,3), (2,2)])
+outp= n.propagate_forwards(Inp)
+outp = mm.scalematrix(outp, 0.01)
+n.propagate_backwards(outp, 0.1)
+
+'''
+# implement max-pooling layer 
+
+Inp = [mm.makematrix(6, 6, [1, 5]),mm.makematrix(6, 6, [10,15])]
+for i in Inp:
+    dispM(i)
+    print('\n')
+n = NeuralNetwork2("nut")
+n.addLayer(["MaxPooling",(2,2), 2])
+y = n.propagate_forwards(Inp)
+for i in y:
+    dispM(i)
+    print('\n')
+z = [mm.makematrix(3,3, 1),mm.makematrix(3,3, 1)]
+
+out = n.propagate_backwards(y,8)
+for i in out:
+    dispM(i)
+    print('\n')
