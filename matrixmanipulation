@@ -43,21 +43,34 @@ class mm:
     def submatrix(a, b):
         if mm.dim(a) != mm.dim(b):
             return "\nError: cannot compute difference with given matrix dimensions"
-        matrix = []
-        for row in range(mm.dim(a)[0]):
-            mrow = []
-            for x in range(mm.dim(a)[1]):
-                mrow.append(a[row][x] - b[row][x])
-            matrix.append(mrow)
-        return matrix
+        if type(a[0][0]) == list:
+            newmatrix = []
+            for i in range(len(a)):
+                newmatrix.append(mm.submatrix(a[i], b[i]))
+            return newmatrix
+        else:
+            matrix = []
+            for row in range(mm.dim(a)[0]):
+                mrow = []
+                for x in range(mm.dim(a)[1]):
+                    mrow.append(a[row][x] - b[row][x])
+                matrix.append(mrow)
+            return matrix
     
+    # if matrix is not two-dimensional, then recursively computes scalar
     @staticmethod
     def scalematrix(a, scalar):
-        matrix = mm.copy(a)
-        for row in matrix:
-            for item in range(mm.dim(matrix)[1]):
-                row[item] *= scalar
-        return matrix
+        if type(a[0][0]) == list:
+            newmatrix = []
+            for i in a:
+                newmatrix.append(mm.scalematrix(i, scalar))
+            return newmatrix
+        else:
+            matrix = mm.copy(a)
+            for row in matrix:
+                for item in range(mm.dim(matrix)[1]):
+                    row[item] *= scalar
+            return matrix
     
     @staticmethod
     def raise_power(a, indice):
@@ -102,7 +115,7 @@ class mm:
     @staticmethod
     def dim(matrix):
         rows = len(matrix)
-        if type(matrix[0]) == int or type(matrix[0]) == float:
+        if type(matrix[0]) in (int, float):
             col = 1
         else:
             col = len(matrix[0])
@@ -123,16 +136,12 @@ class mm:
     @staticmethod
     def copy(a):
         newmatrix = []
-        if mm.dim(a)[1] == 1:
+        if type(a[0]) in (int, float):
            newmatrix = a.copy()
-           return newmatrix
         else: 
             for row in a:
-                mrow = []
-                for item in range(mm.dim(a)[1]):
-                    mrow.append(row[item])
-                newmatrix.append(mrow)
-            return newmatrix  
+                newmatrix.append(row.copy())
+        return newmatrix          
         
     @staticmethod
     def testrand(size):
@@ -152,4 +161,56 @@ class mm:
             row = [0]*size
             row[i] = 1
             matrix.append(row)
-        return matrix
+        return 
+
+    @staticmethod
+    def convolve(matrix, kernel, full=None):
+        dimk = mm.dim(kernel)
+        dimm = mm.dim(matrix)
+        
+        if full == "full":
+            temp = []
+            for i in range(dimk[0]-1):
+                temp.append([0]*((2*(dimk[1]-1))+dimm[1]))
+            matrix = temp + [[0]*(dimk[1]-1) + item + [0]*(dimk[1]-1) for item in matrix.copy()] + temp
+            dimm = mm.dim(matrix)
+            
+        outp = []
+        for r in range(dimm[0]-dimk[0]+1):
+            temp_row = []
+            for c in range(dimm[1]-dimk[1]+1):
+                temp = mm.hadamard([h[c:dimk[0]+c] for h in mm.copy(matrix)[r:dimk[1]+r]], kernel)
+                temp = sum([sum(i) for i in temp])
+                temp_row.append(temp)
+            outp.append(temp_row)
+        return outp
+    
+    @staticmethod
+    def rot(matrix):
+        outp = []
+        for i in matrix:
+            outp.append(i[::-1])
+        return outp[::-1]
+    
+    @staticmethod
+    def pool(matrix, size, stride, mode):
+        x, y = mm.dim(matrix)
+        outp = []
+        indices = []
+        for r in range(0, x-size[0]+1, stride):
+            row = []
+            for c in range(0, y-size[0]+1, stride):
+                temp = []
+                cont = [z[c:c+size[1]] for z in mm.copy(matrix)[r:r+size[0]]]
+                for i in cont:
+                    temp += i
+                if mode == 'max':
+                    index = temp.index(max(temp))
+                    indices.append(((index//size[0])+r, (index%size[1])+c))
+                    row.append(max(temp))
+                elif mode == 'min':
+                    row.append(min(temp))
+                elif mode == 'mean':
+                    row.append((sum(temp))/len(temp))
+            outp.append(row)
+        return outp, indices
