@@ -33,7 +33,7 @@ class Hidden(Layer):
         else:
             outp = mm.summatrix(mm.dotprod(self.weights, inp), self.NLbiases)
             self._input = mm.copy(inp)
-            self._output = mm.copy(outp)
+            #self._output = mm.copy(outp)
             return outp
     
     def backward(self, dE_dO, rate):
@@ -73,7 +73,7 @@ class ReLU(Layer):
         for row in inp:
             for item in range(mm.dim(inp)[1]):
                 row[item] = max(0.01*row[item], row[item])
-        self._output = mm.copy(inp)
+        #self._output = mm.copy(inp)
         return inp
     
     def backward(self, dE_dO, rate):
@@ -103,6 +103,113 @@ class Softmax(Layer):
     def getType(self):
         return "Softmax"
     
+class Convolutional(Layer):
+    def __init__(self, input_depth, output_depth, input_size, kernel_size):
+        self.input_depth = input_depth
+        self.output_depth = output_depth
+        self.input_size = input_size
+        self.kernel_size = kernel_size
+        self.kernels = None
+        self.biases = None  
+    
+    def forward(self, inp):
+        self._input = inp
+        outp = []
+        for i in range(self.output_depth):
+            temp = mm.copy(self.biases[i])
+            conv = map(lambda x: mm.convolve(x[0], x[1]), zip(inp, self.kernels[i]))
+            for item in conv:
+                temp = mm.summatrix(temp, item)
+            outp.append(temp)
+        return outp
+    
+    def backward(self, dE_dO, rate):
+        inp = self._input
+        dE_dK = []
+        dE_dI = []
+        kernels_t = mm.transpose(self.kernels)
+
+        for i in range(self.output_depth):
+            dE_dK.append(list(map(lambda x: mm.convolve(x[0], x[1]), zip(inp, [dE_dO[i]]*self.output_depth))))
+            
+        for j in range(self.input_depth):
+            y = list(map(lambda x: mm.convolve(x[0], x[1], "full"), zip(dE_dO, kernels_t[j])))
+            temp = y[0]
+            for item in y[1:]:
+                temp = mm.summatrix(temp, item)
+            dE_dI.append(temp)
+            
+        self.biases = mm.submatrix(self.biases, mm.scalematrix(dE_dO, rate))
+        self.kernels = mm.submatrix(self.kernels, mm.scalematrix(dE_dK, rate))
+        return dE_dI
+    
+    def getType(self):
+        return "Convolutional"
+    
+    def getKernels(self):
+        return self.kernels
+    
+    def setKernels(self, new_kernels):
+        self.kernels = new_kernels
+        
+    def getBiases(self):
+        return self.biases
+
+    def setBiases(self, new_biases):
+        self.biases = new_biases
+        
+    def getInput_depth(self):
+        return self.input_depth
+    
+    def getOutput_depth(self):
+        return self.output_depth
+    
+    def getInput_size(self):
+        return self.input_size
+    
+    def getKernel_size(self):
+        return self.kernel_size
+    
+class MaxPooling(Layer):
+    
+    def __init__(self, size, stride):
+        self.size = size
+        self.stride = stride
+        self.max_pos = None
+        self.input_size = None
+
+    def forward(self, inp):
+        self.input_size = mm.dim(inp[0])
+        outp = []
+        max_pos = []
+        for i in inp:
+            pool = mm.pool(i, self.size, self.stride, "max")
+            outp.append(pool[0])
+            max_pos.append(pool[1])
+        self.max_pos = max_pos
+        return outp
+    
+    def backward(self, dE_dO, rate):
+        dE_dI = []
+        for i in range(len(dE_dO)):
+            indices = self.max_pos[i]
+            matrix = mm.makematrix(self.input_size[0], self.input_size[1], 0)
+            temp = []
+            for item in dE_dO[i]:
+                temp+=item
+            for j in range(len(temp)):
+                matrix[indices[j][0]][indices[j][1]] = temp[j]
+            dE_dI.append(matrix)
+        return dE_dI
+    
+    def getType(self):
+        return "MaxPooling"
+    
+    def getSize(self):
+        return self.size
+    
+    def getStride(self):
+        return self.stride
 '''
 NOTES: 
 - While neither the backpropagation method for the ReLU or Softmax classes utilise the "rate" parameter, it is still passed in during the backpropagation of all layers.
