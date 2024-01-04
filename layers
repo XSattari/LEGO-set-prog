@@ -26,8 +26,18 @@ class Hidden(Layer):
         self.neurons = neurons
         self.weights = None
         self.NLbiases = None
+        self.input_matrix_shape = None
         
     def forward(self, inp):
+        if type(inp[0][0]) == list:
+            self.input_matrix_shape = mm.dim(inp[0])
+            newinp = []
+            for matrix in inp:
+                for row in matrix:
+                    for item in row:
+                        newinp.append([item])
+            inp = newinp 
+
         if self.weights == None:
             return inp
         else:
@@ -46,8 +56,26 @@ class Hidden(Layer):
             dE_dI = mm.dotprod(mm.transpose(weights), dE_dO)
             self.weights = mm.submatrix(self.weights, mm.scalematrix(dE_dW, rate))
             self.NLbiases = mm.submatrix(self.NLbiases, mm.scalematrix(dE_dO, rate))
-            return dE_dI
-
+            
+            if self.input_matrix_shape == None:
+                return dE_dI
+            else:
+                x, y = self.input_matrix_shape
+                outp = []
+                temp_matrix = []
+                temp_row = []
+                for i in range(len(dE_dI)):
+                    temp_row.append(dE_dI[i][0])
+                    if len(temp_row) == y:
+                        temp_matrix.append(temp_row)
+                        temp_row = []
+                        
+                    if len(temp_matrix) == x:
+                        outp.append(temp_matrix)
+                        temp_matrix = []
+                return outp
+                        
+                        
     def getType(self):
         return "Hidden"
     
@@ -65,24 +93,41 @@ class Hidden(Layer):
         
     def getNeurons(self):
         return self.neurons 
-
+    
 
 class ReLU(Layer):
+    def __init__(self):
+        # if input is not 3D, will reshape it. Will ensure that it is made 2D again after, as with backpropagation if necessary
+        self.is3D = False
+        
     def forward(self, inp):
+        self.is3D = type(inp[0][0]) == list
+        inp = inp if self.is3D else [inp]
         self._input = mm.copy(inp)
-        for row in inp:
-            for item in range(mm.dim(inp)[1]):
-                row[item] = max(0.01*row[item], row[item])
+        outp = []
+        tmp = mm.dim(inp[0])[1]
+        for i in inp:
+            for row in i:
+                for item in range(tmp):
+                    row[item] = max(0.01*row[item], row[item])
+            outp.append(i)
         #self._output = mm.copy(inp)
-        return inp
+        return outp if self.is3D else outp[0]
     
     def backward(self, dE_dO, rate):
-        f_prime = mm.copy(self._input)
-        for row in f_prime:
-            for item in range(mm.dim(f_prime)[1]):
-                row[item] = 1 if row[item] > 0 else row[item]*0.01
-        dE_dI = mm.hadamard(dE_dO, f_prime)
-        return dE_dI
+        dR = mm.copy(self._input)
+        dE_dO = dE_dO if self.is3D else [dE_dO]
+        dE_dI = []
+        tmp = mm.dim(dR[0])[1]
+        for i in range(len(dE_dO)):
+            for row in dR[i]:
+                for item in range(tmp):
+                    if row[item] > 0:
+                        row[item] = 1 
+                    else:
+                        row[item] = 0.01
+            dE_dI.append(mm.hadamard(dE_dO[i], dR[i]))
+        return dE_dI if self.is3D else dE_dI[0]
     
     def getType(self):
         return "ReLU"
@@ -95,7 +140,7 @@ class Softmax(Layer):
         return outp
     
     def backward(self, dE_dO, rate):
-        #uses formula derived by the independant code: dE_dI = (M hadamard (I-M(transposed))). dE_dO
+        #uses formula dE_dI = (M hadamard (I-M(transposed))). dE_dO
         matrix = [i*len(self._output) for i in self._output]
         dE_dI = mm.dotprod(mm.hadamard(matrix, mm.submatrix(mm.identity(len(self._output)), mm.transpose(matrix))), dE_dO)
         return dE_dI
@@ -215,6 +260,3 @@ NOTES:
 - While neither the backpropagation method for the ReLU or Softmax classes utilise the "rate" parameter, it is still passed in during the backpropagation of all layers.
 Thus, it still needs to take it in even if it does nothing with it. Can I just change implementation so that only the Hidden layer gets it? Sure. Will I? No need. Easy roundabout.
 '''
-    
-
-
