@@ -4,7 +4,11 @@ import time
 import random
 from matrices import mm
 from layers import *
+# My project does not use numpy, rather I wanted to create my own functions so I have more freedom
+# The reason it is in my main and previous commits is because I once used it to test how much slower certain functions of my own were compared to numpy
+# I will include this not in one of my commits for clarification of my intentions
 import numpy as np
+# This main is used mostly for testing or prototyping, which is why it is a mess currently
 
 def timer():
     start_time = time.perf_counter()
@@ -168,21 +172,19 @@ outp = mm.scalematrix(outp, 0.01)
 n.propagate_backwards(outp, 0.1)
 
 '''
-# implement max-pooling layer 
+# --reshape--, activation functions, test
 
-Inp = [mm.makematrix(6, 6, [1, 5]),mm.makematrix(6, 6, [10,15])]
-for i in Inp:
-    dispM(i)
-    print('\n')
+dR = [[2,3,-5], [0,4,2], [-34,-3,5]]
+
+
+l = mm.makematrix(28, 28, 1)
 n = NeuralNetwork2("nut")
-n.addLayer(["MaxPooling",(2,2), 2])
-y = n.propagate_forwards(Inp)
-for i in y:
-    dispM(i)
-    print('\n')
-z = [mm.makematrix(3,3, 1),mm.makematrix(3,3, 1)]
+layers = [["Convolutional", 1, 2, (28,28), (5, 5)], ["MaxPooling", (2,2), 2], ["ReLU"], ["Convolutional", 2, 4, (12,12), (3, 3)], ["MaxPooling", (2,2), 2], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+for layer in layers:
+    n.addLayer(layer)
+    
+o = n.propagate_forwards([l])
+print(o)
+    
 
-out = n.propagate_backwards(y,8)
-for i in out:
-    dispM(i)
-    print('\n')
+
