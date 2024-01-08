@@ -1,5 +1,6 @@
 from matrices import mm
 import math
+import numpy as np
 
 class Layer:
     def __init__(self):
@@ -50,10 +51,8 @@ class Hidden(Layer):
         if self.weights == None:
             return dE_dO
         else:
-            inp = mm.copy(self._input)
-            weights = mm.copy(self.weights)
-            dE_dW = mm.dotprod(dE_dO, mm.transpose(inp))
-            dE_dI = mm.dotprod(mm.transpose(weights), dE_dO)
+            dE_dW = mm.dotprod(dE_dO, mm.transpose(self._input))
+            dE_dI = mm.dotprod(mm.transpose(self.weights), dE_dO)
             self.weights = mm.submatrix(self.weights, mm.scalematrix(dE_dW, rate))
             self.NLbiases = mm.submatrix(self.NLbiases, mm.scalematrix(dE_dO, rate))
             
@@ -142,7 +141,8 @@ class Softmax(Layer):
     def backward(self, dE_dO, rate):
         #uses formula dE_dI = (M hadamard (I-M(transposed))). dE_dO
         matrix = [i*len(self._output) for i in self._output]
-        dE_dI = mm.dotprod(mm.hadamard(matrix, mm.submatrix(mm.identity(len(self._output)), mm.transpose(matrix))), dE_dO)
+        temp = mm.submatrix(mm.identity(len(self._output)), mm.transpose(matrix))
+        dE_dI = mm.dotprod(mm.hadamard(matrix, temp), dE_dO)
         return dE_dI
     
     def getType(self):
@@ -169,13 +169,12 @@ class Convolutional(Layer):
         return outp
     
     def backward(self, dE_dO, rate):
-        inp = self._input
         dE_dK = []
         dE_dI = []
         kernels_t = mm.transpose(self.kernels)
 
         for i in range(self.output_depth):
-            dE_dK.append(list(map(lambda x: mm.convolve(x[0], x[1]), zip(inp, [dE_dO[i]]*self.output_depth))))
+            dE_dK.append(list(map(lambda x: mm.convolve(x[0], x[1]), zip(self._input, [dE_dO[i]]*self.output_depth))))
             
         for j in range(self.input_depth):
             y = list(map(lambda x: mm.convolve(x[0], x[1], "full"), zip(dE_dO, kernels_t[j])))
@@ -187,7 +186,7 @@ class Convolutional(Layer):
         self.biases = mm.submatrix(self.biases, mm.scalematrix(dE_dO, rate))
         self.kernels = mm.submatrix(self.kernels, mm.scalematrix(dE_dK, rate))
         return dE_dI
-    
+        
     def getType(self):
         return "Convolutional"
     
@@ -260,3 +259,6 @@ NOTES:
 - While neither the backpropagation method for the ReLU or Softmax classes utilise the "rate" parameter, it is still passed in during the backpropagation of all layers.
 Thus, it still needs to take it in even if it does nothing with it. Can I just change implementation so that only the Hidden layer gets it? Sure. Will I? No need. Easy roundabout.
 '''
+    
+
+
