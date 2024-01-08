@@ -15,13 +15,16 @@ class NeuralNetwork2:
             print(item, end  = ". ")
             
     @staticmethod
-    def upload_saved(name):
+    def upload_saved(name, newname=None):
         if name not in NeuralNetwork2.savedNetworks:
             return f"Error: '{name}' does not exist."
         else:
             index = NeuralNetwork2.savedNetworks.index(name)
             cont = eval(NeuralNetwork2.savedNetworks[index+1])
-            uploadedNN = NeuralNetwork2(name)
+            if newname==None:
+                uploadedNN = NeuralNetwork2(name)
+            else:
+                uploadedNN = NeuralNetwork2(newname)
             for layer in cont:
                 uploadedNN.addLayer(layer)
             return uploadedNN
@@ -49,6 +52,7 @@ class NeuralNetwork2:
                 self.layers[n].setWeights(mm.makematrix(layer[1], self.layers[n].getNeurons(), [-xavier, xavier]))
                 #XAVIER INITIALISATION
                 self.layers[n].setNLbiases(mm.makematrix(layer[1], 1, 0.01))
+                
             self.lastHidden = len(self.layers)
             
         elif layer[0] == "Convolutional":
@@ -61,10 +65,10 @@ class NeuralNetwork2:
                 biases = []
                 bias_size = ((layer[3][0]-layer[4][0]+1),(layer[3][1]-layer[4][1]+1))
                 for i in range(layer[2]):
-                    biases.append(mm.makematrix(bias_size[0], bias_size[1], [-1,1]))
+                    biases.append(mm.makematrix(bias_size[0], bias_size[1], 0.01))
                     temp = []
                     for j in range(layer[1]):
-                        temp.append(mm.makematrix(layer[4][0], layer[4][1], [-0.5, 0.5]))
+                        temp.append(mm.makematrix(layer[4][0], layer[4][1], [0, 0.01], True))
                     kernels.append(temp)
                 layerObject.setKernels(kernels)
                 layerObject.setBiases(biases)
@@ -94,27 +98,52 @@ class NeuralNetwork2:
             dE_dO = layer.backward(dE_dO, rate)
         return dE_dO
     
+    
     def learn(self, inp, val_true, rate):
-        inp = mm.copy(inp)
+        #inp = mm.copy(inp)
         output = self.propagate_forwards(inp)
-        error = mm.msError(output, val_true)
+        #error = mm.msError(output, val_true)
         dE_dO = mm.dE_dO(output, val_true)
         self.propagate_backwards(dE_dO, rate)
        
     def training(self, data, results, rate, cycles):
-        start = 0
-        end=0
         for cycle in range(cycles):
-            if cycle == 0:
-                start = time.time()
-            if cycle == 9:
-                end = time.time()
             nums = mm.testrand(len(data))
             for i in nums:  
-                self.learn(mm.alter_dim(data[i], [0, 1]), mm.alter_dim(results[i], [0, 1]), rate)
+                self.learn(data[i], results[i], rate)
             print(cycle+1)
-            if (cycle+1)%10 == 0:
-                print(f"Est time until completion: {(end-start)*(10-((cycle+1)/10))}")
+                
+    def train2(self, data, results, rate, cycles, batch_size):
+        rx, ry = mm.dim(results[0])
+        err = 0
+        errchange = 0   
+        for cycle in range(cycles):
+            '''
+            if (cycle+1)%20==0:
+                rate*=0.75 
+                
+            if cycle == 15:
+                rate*=0.5'''
+            error = mm.makematrix(rx, ry, 0)
+            shuffled_nums = mm.testrand(len(data))
+            c = 0
+            temp = mm.makematrix(rx, ry, 0)
+            for i in shuffled_nums:
+                c+=1
+                outp = self.propagate_forwards(data[i])
+                error = mm.summatrix(error, mm.msError(outp, results[i]))
+                dE_dO = mm.dE_dO(outp, results[i])
+                temp = mm.summatrix(temp, dE_dO)
+                if c%batch_size == 0:
+                    self.propagate_backwards(mm.scalematrix(temp, (1/batch_size)), rate)
+                    temp = mm.makematrix(rx, ry, 0)  
+            print(cycle+1, end=", ")
+            tmp = sum([i[0] for i in error])
+            errchange = tmp -err
+            err = tmp
+            if errchange > 10:
+                rate*=0.1
+            print(err)
                 
     def saveNN(self):
         if self.name in NeuralNetwork2.savedNetworks:
@@ -133,7 +162,7 @@ class NeuralNetwork2:
                     layerInfo.append(layer.getOutput_depth())
                     layerInfo.append(layer.getInput_size())
                     layerInfo.append(layer.getKernel_size())
-                    layerInfo.append(layer.getKernals())
+                    layerInfo.append(layer.getKernels())
                     layerInfo.append(layer.getBiases())
                 elif layer.getType() == "MaxPooling":
                     layerInfo.append(layer.getSize())
@@ -148,7 +177,7 @@ class NeuralNetwork2:
     def displayLayers(self):
         for layer in self.layers:
             print(layer.getType())
-            '''
+            ''''''
             if layer.getType() == "Hidden":
                 print(layer.getNeurons())
                 
@@ -158,7 +187,7 @@ class NeuralNetwork2:
             if layer.getType() == "Convolutional":
                 print(layer.getKernels())
                 print(len(layer.getKernels()))
-                print(layer.getBiases())'''
+                print(layer.getBiases())
                 
             if layer.getType() == "MaxPooling":
                 print(layer.getSize())
