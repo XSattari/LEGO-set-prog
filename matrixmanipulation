@@ -3,12 +3,17 @@ import random
 class mm:
     
     @staticmethod
-    def makematrix(rows, columns, num=None):
+    def makematrix(rows, columns, num=None, gauss=None):
         matrix = []
         for i in range(rows):
             matrixrow = []
             for j in range(columns):
-                matrixrow.append(num if type(num) != list else random.uniform(num[0], num[1]))
+                if type(num) != list:
+                    matrixrow.append(num) 
+                elif gauss:
+                    matrixrow.append(random.gauss(num[0], num[1]))
+                else:
+                    matrixrow.append(random.uniform(num[0], num[1]))
             matrix.append(matrixrow)
         return matrix
     
@@ -161,7 +166,7 @@ class mm:
             row = [0]*size
             row[i] = 1
             matrix.append(row)
-        return 
+        return matrix
 
     @staticmethod
     def convolve(matrix, kernel, full=None):
