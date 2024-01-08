@@ -1,13 +1,8 @@
-from NN import NeuralNetwork 
 from NN2 import NeuralNetwork2
 import time
 import random
 from matrices import mm
 from layers import *
-# My project does not use numpy, rather I wanted to create my own functions so I have more freedom
-# The reason it is in my main and previous commits is because I once used it to test how much slower certain functions of my own were compared to numpy
-# I will include this not in one of my commits for clarification of my intentions
-import numpy as np
 # This main is used mostly for testing or prototyping, which is why it is a mess currently
 
 def timer():
@@ -32,7 +27,7 @@ def main():
     o8 = Hidden(10)
     o9 = ReLU()
     o10 = Hidden(1)
-    nt = NeuralNetwork("MY_NN")
+    nt = NeuralNetwork2("MY_NN")
     nt.addLayer(obj0)
     nt.addLayer(obj1)
     nt.addLayer(obj2)
@@ -93,12 +88,18 @@ def proc():
     file2.close()
 
     
-def retProc():
+def retProc(max=60000):
     file2 = open("processedData.txt", "r")
+    c = 0
     data = []
     for i in file2:
-        data.append(eval(i))
-    return data
+        if c == max:
+            file2.close()
+            print("Data retrieval complete.")
+            return data
+        else:
+            data.append(eval(i))
+        c+=1
 
 def getMax(lis):
     mx = 0
@@ -113,10 +114,9 @@ def getMax(lis):
     
 
 def MNIST_TRAIN():
-    mnist = retProc()
-    train = mnist[:1000]
+    train = retProc(1000)
 
-    mNetwork = NeuralNetwork2("MNIST2")
+    mNetwork = NeuralNetwork2("MNIST3")
     #layers = [["Hidden", 784], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
     layers = [["Hidden", 784], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Softmax"], ["Hidden", 10]]
 
@@ -125,27 +125,26 @@ def MNIST_TRAIN():
 
     data = []
     results = []
-    for i in train:
-        data.append(i[0])
-        results.append(i[1])
+    for i in train:  
+        data.append(mm.alter_dim(i[0], [0,1]))
+        results.append(mm.alter_dim(i[1], [0,1]))
     
 
     mNetwork.training(data, results, 0.01, 100)
     mNetwork.saveNN()
+    return data, results
 
 
-def MNIST_TEST():
-    mnist = retProc()    
-    n = NeuralNetwork2.upload_saved("MNIST2")
+def MNIST_TEST(data, results, nn):
+
+    n = NeuralNetwork2.upload_saved(nn)
 
     correct = 0
     total = 0
-    for i in range(50000):    
-        outp = n.propagate_forwards(mm.alter_dim(mnist[1001+i][0], [0, 1]))
-        res = mnist[1001+i][1]
-        tmp = []
-        for i in outp:
-            tmp.append(i[0])
+    for i in range(len(data)):    
+        outp = n.propagate_forwards(data[i])
+        res = [x[0] for x in results[i]]
+        tmp = [x[0] for x in outp]
         pred = getMax(tmp)
         tru = getMax(res)
         total += 1
@@ -174,17 +173,59 @@ n.propagate_backwards(outp, 0.1)
 '''
 # --reshape--, activation functions, test
 
-dR = [[2,3,-5], [0,4,2], [-34,-3,5]]
+mnist = retProc(55000)
+data = []
+results = []
+for i in mnist:
 
+    tm = []
+    trow = []
+    for j in i[0]:
+        trow.append(j)
+        if len(trow) == 28:
+            tm.append(trow)
+            trow = []
+        if len(tm) == 28:
+            data.append([tm])
+            tm = []
+          
+    results.append(mm.alter_dim(i[1], [0,1]))
+   
+'''
+s1 = time.time()
+n1 = NeuralNetwork2("test1")
+layers1 = [["Convolutional", 1, 2, (28,28), (5, 5)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 2, 4, (12,12), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+for layer in layers1:
+    n1.addLayer(layer)
 
-l = mm.makematrix(28, 28, 1)
-n = NeuralNetwork2("nut")
-layers = [["Convolutional", 1, 2, (28,28), (5, 5)], ["MaxPooling", (2,2), 2], ["ReLU"], ["Convolutional", 2, 4, (12,12), (3, 3)], ["MaxPooling", (2,2), 2], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
-for layer in layers:
-    n.addLayer(layer)
-    
-o = n.propagate_forwards([l])
-print(o)
-    
+n1.training(data, results, 0.01, 15)
+n1.saveNN()
+e1 = time.time()
 
+print(e1-s1)
+
+'''
+#n.saveNN()
+
+#n = NeuralNetwork2.upload_saved("supremeNut")
+
+'''
+train = retProc(1024)
+data = []
+results = []
+for i in train:  
+    data.append(mm.alter_dim(i[0], [0,1]))
+    results.append(mm.alter_dim(i[1], [0,1]))
+'''
+'''
+name = "bestest"
+n2 = NeuralNetwork2(name)
+layers2 = [["Convolutional", 1, 3, (28,28), (5, 5)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 432], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+for layer in layers2:
+    n2.addLayer(layer)
+
+n2 = NeuralNetwork2.upload_saved("bestest", "b2")
+n2.train2(data, results, 0.1, 10, 1)
+n2.saveNN()
+MNIST_TEST(data, results, "b2")'''
 
