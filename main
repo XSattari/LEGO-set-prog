@@ -3,6 +3,10 @@ import time
 import random
 from matrices import mm
 from layers import *
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from PIL import Image
+import os
 # This main is used mostly for testing or prototyping, which is why it is a mess currently
 
 def timer():
@@ -150,8 +154,8 @@ def MNIST_TEST(data, results, nn):
         total += 1
         if pred == tru:
             correct +=1
-        if total%500==0:
-            print(f"progress: {(total*100)/50000}% complete")    
+        if total%100==0:
+            print(f"progress: {(total*100)/len(data)}% complete")    
     
     accuracy = (correct*100)/total
     print(f"\nAccuracy of the neural network: {accuracy}%\n")
@@ -172,7 +176,7 @@ n.propagate_backwards(outp, 0.1)
 
 '''
 # --reshape--, activation functions, test
-
+'''
 mnist = retProc(55000)
 data = []
 results = []
@@ -190,7 +194,7 @@ for i in mnist:
             tm = []
           
     results.append(mm.alter_dim(i[1], [0,1]))
-   
+'''   
 '''
 s1 = time.time()
 n1 = NeuralNetwork2("test1")
@@ -229,3 +233,124 @@ n2.train2(data, results, 0.1, 10, 1)
 n2.saveNN()
 MNIST_TEST(data, results, "b2")'''
 
+'''
+image_path = r"dataset\2357 brick corner 1x2x2 000L.png"
+image = mpimg.imread(image_path)
+img = Image.open(image_path)
+img.thumbnail((29, 29))
+plt.imshow(img)
+plt.show()
+'''
+
+def procLego(classes=17):
+    image_size = 64
+    dataset = os.scandir("dataset")
+    train_data = []
+    train_res = []
+
+    test_data = []
+    test_res = []
+    c = 0
+    item = 0
+
+    for i in dataset:
+        img = Image.open("dataset\\" + i.name)
+        img.thumbnail((image_size, image_size))
+
+        res_matrix = [[[0]]*classes][0]
+        res_matrix[item] = [1]
+        temp_row = []
+        data_matrix = []
+        for i in img.getdata():
+            temp_row.append(i[0] / 255)
+            if len(temp_row) == image_size:
+                data_matrix.append(temp_row)
+                temp_row = []
+
+        if c >= 500:
+            test_data.append([data_matrix])
+            test_res.append(res_matrix)
+        else:
+            train_data.append([data_matrix])
+            train_res.append(res_matrix)
+
+        c+=1
+        if c==800:
+            item+=1
+            c=0
+            print(f"Data proc progress: {item*(100/classes)}%")
+
+        if item == classes:
+            break
+
+    print("Data retrieval complete.")
+    return test_data, test_res
+
+def legproc():
+    classes = 2
+    image_size = 64
+    dataset = os.scandir("d2")
+    train_data = []
+    train_res = []
+
+    c = 0
+    item = 0
+
+    for i in dataset:
+        img = Image.open("dataset\\" + i.name)
+        img.thumbnail((image_size, image_size))
+
+        res_matrix = [[[0]]*classes][0]
+        res_matrix[item] = [1]
+        temp_row = []
+        data_matrix = []
+        for i in img.getdata():
+            temp_row.append(i[0] / 255)
+            if len(temp_row) == image_size:
+                data_matrix.append(temp_row)
+                temp_row = []
+
+
+        train_data.append([data_matrix])
+        train_res.append(res_matrix)
+
+        c+=1
+        if c==154:
+            item+=1
+            c=0
+            print(f"Data proc progress: {item*(100/classes)}%")
+
+        if item == classes:
+            break
+
+    print("Data retrieval complete.")
+    return train_data, train_res
+
+#layers2 = [["Convolutional", 1, 8, (128, 128), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 8, 16, (63,63), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 16, 32, (30,30), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 6272], ["ReLU"], ["Hidden", 128], ["ReLU"], ["Softmax"], ["Hidden", 50]]
+'''
+nn = NeuralNetwork2("myhope")
+layers2 = [["Convolutional", 1, 1, (64, 64), (3, 3)], ["ReLU"], ["MaxPooling", (4,4), 4], ["Hidden", 225], ["ReLU"], ["Softmax"], ["Hidden", 17]]
+for layer in layers2:
+    nn.addLayer(layer)
+nn.saveNN()
+'''
+
+'''
+train_data, train_res = procLego()
+nn = NeuralNetwork2.upload_saved("ray_in_the_dark", "ray_in_the_dark2")
+nn.train2(train_data, train_res, 1, 20, 1)
+nn.saveNN()
+'''
+
+''''''
+train_data, train_res = procLego()
+size = 5100
+nd = []
+nr = []
+x = mm.testrand(len(train_data))
+for i in range(size):
+    nd.append(train_data[x[i]])
+    nr.append(train_res[x[i]])
+
+
+MNIST_TEST(nd, nr, "ray_in_the_dark2")
