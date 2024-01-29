@@ -116,14 +116,16 @@ class NeuralNetwork2:
     def train2(self, data, results, rate, cycles, batch_size):
         rx, ry = mm.dim(results[0])
         err = 0
-        errchange = 0   
+        errchange = 0
+        s = time.time()
+        n = 0   
         for cycle in range(cycles):
             '''
             if (cycle+1)%20==0:
                 rate*=0.75 
-                
-            if cycle == 15:
-                rate*=0.5'''
+               
+            if cycle %5==0:
+                rate*=0.1''' 
             error = mm.makematrix(rx, ry, 0)
             shuffled_nums = mm.testrand(len(data))
             c = 0
@@ -135,15 +137,26 @@ class NeuralNetwork2:
                 dE_dO = mm.dE_dO(outp, results[i])
                 temp = mm.summatrix(temp, dE_dO)
                 if c%batch_size == 0:
+                    #print(sum([i[0] for i in error]))
+                    #error = mm.makematrix(rx, ry, 0)
                     self.propagate_backwards(mm.scalematrix(temp, (1/batch_size)), rate)
-                    temp = mm.makematrix(rx, ry, 0)  
+                    temp = mm.makematrix(rx, ry, 0)
+                '''
+                if c%100==0:
+                    #rate*=0.4
+                    n+=1
+                    e = time.time()
+                    print(e-s, (n*10000)/(1000*cycles))
+                    s = e
+                ''' 
             print(cycle+1, end=", ")
-            tmp = sum([i[0] for i in error])
+            '''
             errchange = tmp -err
             err = tmp
             if errchange > 10:
-                rate*=0.1
-            print(err)
+                rate*=0.1'''
+            print(sum([i[0] for i in error]))
+            error = mm.makematrix(rx, ry, 0)
                 
     def saveNN(self):
         if self.name in NeuralNetwork2.savedNetworks:
