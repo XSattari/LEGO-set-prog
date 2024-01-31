@@ -2,10 +2,11 @@ from NN2 import NeuralNetwork2
 import time
 import random
 from matrices import mm
+from matrices import aug
 from layers import *
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-from PIL import Image
+from PIL import Image, ImageEnhance
 import os
 # This main is used mostly for testing or prototyping, which is why it is a mess currently
 
@@ -242,7 +243,7 @@ plt.imshow(img)
 plt.show()
 '''
 
-def procLego(classes=17):
+def procLego(classes=17, aug_im=False):
     image_size = 64
     dataset = os.scandir("dataset")
     train_data = []
@@ -255,6 +256,8 @@ def procLego(classes=17):
 
     for i in dataset:
         img = Image.open("dataset\\" + i.name)
+        if aug_im:
+            img = aug.augment(img)
         img.thumbnail((image_size, image_size))
 
         res_matrix = [[[0]]*classes][0]
@@ -284,7 +287,7 @@ def procLego(classes=17):
             break
 
     print("Data retrieval complete.")
-    return test_data, test_res
+    return train_data, train_res, test_data, test_res
 
 def legproc():
     classes = 2
@@ -326,23 +329,51 @@ def legproc():
     print("Data retrieval complete.")
     return train_data, train_res
 
+def colour_proc():
+    f = open("legocolor-basic.csv", "r")
+    data = []
+    results = []
+    existing_colours = []
+    for line in f:
+        rgb = []
+        res = [0]*14
+        items = line.split(";")
+        for n in range(2, 5):
+            rgb.append([int(items[n])/255])
+        data.append(rgb)
+        colour = items[7][:-1]
+        if colour not in existing_colours:
+            existing_colours.append(colour)
+        res[existing_colours.index(colour)] = 1
+        results.append(mm.alter_dim(res, [0, 1]))
+    f.close()
+
+    return data, results, existing_colours
+
 #layers2 = [["Convolutional", 1, 8, (128, 128), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 8, 16, (63,63), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 16, 32, (30,30), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 6272], ["ReLU"], ["Hidden", 128], ["ReLU"], ["Softmax"], ["Hidden", 50]]
-'''
-nn = NeuralNetwork2("myhope")
-layers2 = [["Convolutional", 1, 1, (64, 64), (3, 3)], ["ReLU"], ["MaxPooling", (4,4), 4], ["Hidden", 225], ["ReLU"], ["Softmax"], ["Hidden", 17]]
+''' 
+nn = NeuralNetwork2("honour")
+layers2 = [["Convolutional", 1, 4, (64, 64), (3, 3)], ["ReLU"], ["MaxPooling", (4,4), 4], ["Hidden", 900], ["ReLU"], ["Softmax"], ["Hidden", 17]]
 for layer in layers2:
     nn.addLayer(layer)
 nn.saveNN()
 '''
 
-'''
-train_data, train_res = procLego()
-nn = NeuralNetwork2.upload_saved("ray_in_the_dark", "ray_in_the_dark2")
+''' 
+newname = "glory"
+nn = NeuralNetwork2.upload_saved("honour", newname)
+''''''
+for i in range(4):
+    train_data, train_res = procLego(aug_im=True)
+    nn.train2(train_data, train_res, 1, 10, 1)
+
+train_data, train_res, x, y = procLego(aug_im=True)
 nn.train2(train_data, train_res, 1, 20, 1)
 nn.saveNN()
-'''
 
-''''''
+MNIST_TEST(x, y, newname)
+'''
+''' 
 train_data, train_res = procLego()
 size = 5100
 nd = []
@@ -353,4 +384,62 @@ for i in range(size):
     nr.append(train_res[x[i]])
 
 
-MNIST_TEST(nd, nr, "ray_in_the_dark2")
+MNIST_TEST(nd, nr, "indomitable_human_spirit")
+'''
+  
+#procLego(aug_im=True)
+
+def get_rgb(path):
+    img = Image.open(path)
+    img = aug.aspect(img)
+
+    newsize = 32
+    img.thumbnail((newsize, newsize))
+    img_c = img.getdata()
+
+    img = ImageEnhance.Color(img).enhance(0)
+    img_g = img.getdata()
+
+    pixels_g = []
+    for pixel in img_g:
+        pixels_g.append(pixel[0])
+
+    corner_pixels = [pixels_g[0], pixels_g[newsize-1], pixels_g[(newsize*(newsize-1))], pixels_g[(newsize*newsize)-1]]
+
+    mx = max(corner_pixels)
+    diff = 0
+    for i in corner_pixels:
+        if mx - i >= 50:
+            diff += 1
+    mx_is_bg = True if diff < 3 else False
+
+    colour_pixels = []
+    for i in range(len(pixels_g)):
+        is_diff = (abs(mx - pixels_g[i]) >= 50)
+        if is_diff == mx_is_bg:
+            colour_pixels.append(img_c[i])
+
+    rgb = [0, 0, 0]
+    for i in colour_pixels:
+        for j in range(3):
+            rgb[j] += i[j]
+
+    rgb = tuple(map(lambda x: round(x/len(colour_pixels)), rgb))
+    
+    return rgb
+
+x, y, lis = colour_proc()
+
+red = get_rgb("Lego/green.jpg")
+nn = NeuralNetwork2.upload_saved("colour1")
+
+clo = []
+for i in red:
+    clo.append([i/255])
+
+pred = nn.propagate_forwards(clo)
+res = [x[0] for x in pred]
+
+guess = lis[getMax(res)]
+
+print(guess)
