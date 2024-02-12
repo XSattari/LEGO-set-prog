@@ -1,0 +1,48 @@
+class Hashtable:
+    def __init__(self, size):
+        self.size = size
+        self.contents = [None]*size
+        self.collisions = 0
+        self.no_of_items = 0
+
+    def getContents(self):
+        return self.contents
+    
+    def setItem(self, index, key, value):
+        if self.no_of_items == self.size:
+            return "table full"
+        else:
+            self.no_of_items += 1
+
+        if self.contents[index] == None:
+            self.contents[index] = [key, value, []]
+        else:
+            self.collisions += 1
+            newindex = index
+            while self.contents[newindex] != None:
+                newindex += 1
+                newindex %= self.size
+            self.contents[newindex] = [key, value, []]
+            self.contents[index][2].append(newindex)
+
+    def hashKey(self, input):
+        return (input*3) % self.size
+    
+    def getItem(self, index, key):
+        cont = self.contents[index]
+        if cont == None:
+            return False
+        
+        if cont[0] == key:
+            return cont[1]
+        else:
+            for i in cont[2]:
+                if self.contents[i][0] == key:
+                    return self.contents[i][1]
+            return False
+        
+    def getCollision(self):
+        return self.collisions
+        
+    def getNumberOfItems(self):
+        return self.no_of_items
