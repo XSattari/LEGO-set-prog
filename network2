@@ -124,8 +124,8 @@ class NeuralNetwork2:
             if (cycle+1)%20==0:
                 rate*=0.75 
                
-            if cycle %5==0:
-                rate*=0.1''' 
+            if cycle %10==0:
+                rate*=0.5''' 
             error = mm.makematrix(rx, ry, 0)
             shuffled_nums = mm.testrand(len(data))
             c = 0
