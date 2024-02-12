@@ -2,11 +2,12 @@ from NN2 import NeuralNetwork2
 import time
 import random
 from matrices import mm
-from matrices import aug
+from augmentation import aug
 from layers import *
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+#import matplotlib.pyplot as plt
+#import matplotlib.image as mpimg
 from PIL import Image, ImageEnhance
+from hashtable import Hashtable
 import os
 # This main is used mostly for testing or prototyping, which is why it is a mess currently
 
@@ -289,6 +290,52 @@ def procLego(classes=17, aug_im=False):
     print("Data retrieval complete.")
     return train_data, train_res, test_data, test_res
 
+def procLego2(classes=10, aug_im=False):
+    image_size = 64
+    dataset = os.scandir("datasetv2")
+    train_data = []
+    train_res = []
+
+    test_data = []
+    test_res = []
+    c = 0
+    item = 0
+
+    for i in dataset:
+        img = Image.open("dataset\\" + i.name)
+        if aug_im:
+            img = aug.augment(img)
+        img.thumbnail((image_size, image_size))
+
+        res_matrix = [[[0]]*classes][0]
+        res_matrix[item] = [1]
+        temp_row = []
+        data_matrix = []
+        for i in img.getdata():
+            temp_row.append(i[0] / 255)
+            if len(temp_row) == image_size:
+                data_matrix.append(temp_row)
+                temp_row = []
+
+        if c >= 300:
+            test_data.append([data_matrix])
+            test_res.append(res_matrix)
+        else:
+            train_data.append([data_matrix])
+            train_res.append(res_matrix)
+
+        c+=1
+        if c==350:
+            item+=1
+            c=0
+            print(f"Data proc progress: {item*(100/classes)}%")
+
+        if item == classes:
+            break
+
+    print("Data retrieval complete.")
+    return train_data, train_res, test_data, test_res
+
 def legproc():
     classes = 2
     image_size = 64
@@ -352,26 +399,38 @@ def colour_proc():
 
 #layers2 = [["Convolutional", 1, 8, (128, 128), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 8, 16, (63,63), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 16, 32, (30,30), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 6272], ["ReLU"], ["Hidden", 128], ["ReLU"], ["Softmax"], ["Hidden", 50]]
 ''' 
-nn = NeuralNetwork2("honour")
-layers2 = [["Convolutional", 1, 4, (64, 64), (3, 3)], ["ReLU"], ["MaxPooling", (4,4), 4], ["Hidden", 900], ["ReLU"], ["Softmax"], ["Hidden", 17]]
+nn = NeuralNetwork2("serendipity")
+layers2 = [["Convolutional", 1, 4, (64, 64), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 3844], ["ReLU"], ["Softmax"], ["Hidden", 10]]
 for layer in layers2:
     nn.addLayer(layer)
 nn.saveNN()
 '''
 
-''' 
-newname = "glory"
-nn = NeuralNetwork2.upload_saved("honour", newname)
-''''''
+ 
+'''
 for i in range(4):
     train_data, train_res = procLego(aug_im=True)
     nn.train2(train_data, train_res, 1, 10, 1)
+'''
+''' 
+newname = "relentlessness"
+train_data = []
+train_res = []
+test_data = []
+test_res = []
 
-train_data, train_res, x, y = procLego(aug_im=True)
-nn.train2(train_data, train_res, 1, 20, 1)
+for i in range(4):
+    a, b, x, y = procLego2(aug_im=True)
+    train_data += a
+    train_res += b
+    test_data += x
+    test_res += y
+
+nn = NeuralNetwork2.upload_saved("ethereal", newname)
+nn.train2(train_data, train_res, 1, 5, 1)
 nn.saveNN()
 
-MNIST_TEST(x, y, newname)
+MNIST_TEST(test_data, test_res, newname)
 '''
 ''' 
 train_data, train_res = procLego()
@@ -428,18 +487,116 @@ def get_rgb(path):
     
     return rgb
 
-x, y, lis = colour_proc()
+def testingcolours():
+    x, y, lis = colour_proc()
 
-red = get_rgb("Lego/green.jpg")
-nn = NeuralNetwork2.upload_saved("colour1")
+    red = get_rgb("Lego/green.jpg")
+    nn = NeuralNetwork2.upload_saved("colour1")
 
-clo = []
-for i in red:
-    clo.append([i/255])
+    clo = []
+    for i in red:
+        clo.append([i/255])
 
-pred = nn.propagate_forwards(clo)
-res = [x[0] for x in pred]
+    pred = nn.propagate_forwards(clo)
+    res = [x[0] for x in pred]
 
-guess = lis[getMax(res)]
+    guess = lis[getMax(res)]
 
-print(guess)
+    print(guess)
+
+def uploadData():
+    f = open("information.txt", "r")
+    elem_no = 10
+    colour_no = 14
+    elem_list = []
+    colour_list = []
+    id_table = Hashtable(179)
+    total =0
+
+    for i in range(elem_no):
+        elem_list.append(f.readline()[:-1])
+
+    for i in range(colour_no):
+        colour_list.append(f.readline()[:-1])        
+
+    for elem in elem_list:
+        for colour in colour_list:
+            id = f.readline()[:-1]
+            if id != "-":
+                total +=1
+                input = int(elem + str(colour_list.index(colour)))
+                hash_index = id_table.hashKey(input)
+                id_table.setItem(hash_index, input, id)
+    f.close()
+
+    return elem_list, colour_list, id_table
+
+def getID(elem, colour, colour_list, hash_table):
+    input = int(elem + str(colour_list.index(colour)))
+    hash_index = hash_table.hashKey(input)
+    return hash_table.getItem(hash_index, input)
+
+
+def getElem(path, elem_list):
+    #prepare image
+    img = Image.open(path)
+    img = ImageEnhance.Color(img).enhance(0)
+    img_g = img.getdata()
+    bgpixel = img_g[0][0]
+    if bgpixel > 128:
+        img = aug.invert(img)
+        
+        if bgpixel < 205:
+            img = ImageEnhance.Brightness(img).enhance(0.5)
+    else:
+        if bgpixel > 50:
+            img = ImageEnhance.Brightness(img).enhance(0.5)
+
+    img = aug.aspect(img, "max")
+    img = aug.sharpness(img)
+    newsize = 64
+    img.thumbnail((newsize, newsize))
+    img.show()
+
+    #turn image into data
+    temp_row = []
+    data_matrix = []
+    for i in img.getdata():
+        temp_row.append(i[0] / 255)
+        if len(temp_row) == newsize:
+            data_matrix.append(temp_row)
+            temp_row = []
+
+    #feed data into neural network
+    elem_nn = NeuralNetwork2.upload_saved("love")
+    output = elem_nn.propagate_forwards([data_matrix])
+    output = [x[0] for x in output]
+    elem = elem_list[getMax(output)]
+    
+    return elem
+
+
+def getColour(path, colour_list):
+    rgb = get_rgb(path)
+    rgb = [[x/255] for x in rgb]
+
+    colour_nn = NeuralNetwork2.upload_saved("colour1")
+    output = colour_nn.propagate_forwards(rgb)
+    output = [x[0] for x in output]
+    colour = colour_list[getMax(output)]
+
+    return colour
+
+
+def getInformation(path, elem_list, colour_list, hash_table):
+    elem = getElem(path, elem_list)
+    colour = getColour(path, colour_list)
+    id = getID(elem, colour, colour_list, hash_table)
+
+    print(f"Element: {elem}\nColour: {colour}\nLego number: {id}")
+
+'''
+elem_list, colour_list, id_table = uploadData()
+path = "Lego/yellow54200.jpg"
+
+getInformation(path, elem_list, colour_list, id_table)'''
