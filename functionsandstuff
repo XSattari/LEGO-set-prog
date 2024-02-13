@@ -1,0 +1,398 @@
+import cv2
+import os
+import time
+from PIL import Image, ImageEnhance
+from augmentation import aug
+from NN2 import NeuralNetwork2
+from hashtable import *
+from sets import *
+import numpy as np
+
+#Program screens
+
+def Homescreen(sys):
+    while True:
+        os.system('cls')
+        print("welcome user. What action would you like to perform.\nq- Quit program\n1- View my sets\n2- Begin scanning\nPLease input your option.")
+        option = input("Option: ")
+        if option.upper() == "Q":
+            quit()
+        elif option == "1":
+            sys.push("ViewAllSets(sys)")
+            break
+        elif option == "2":
+            sys.push("UploadImageOptions(sys)")
+            break
+        else:
+            message = input("Invalid input. Press enter to try again...")
+
+def ViewAllSets(sys):
+    allsets = sys.getAllSets().getSet()
+    while True:
+        os.system('cls')
+        if len(allsets) == 0:
+            print("It appears you do not have any sets so far. Consider creating one.\nq- Return to homescreen\n n- Create a set")
+        else:
+            print("Input the number of the set you would like to view, or input 'n' to create a new set.\nq- Return to homescreen\n n- Create a new set")
+            print("Your sets:")
+            for i in range(len(allsets)):
+                print(f"{i+1}- {allsets[i].getName()}")
+        option = input("Option: ")
+        if option.upper() == "Q":
+            sys.pop()
+            break
+        elif option.upper() == "N":
+            sys.push("CreateSetOption(sys)")
+            break
+        else:
+            try:
+                chosenset = allsets[int(option)-1]
+                sys.setSet(chosenset)
+                sys.push("ViewASet(sys)")
+                break
+            except:
+                message = input("Invalid input. Press enter to try again...")
+
+        
+def CreateSetOption(sys):
+    pass
+
+def ViewASet(sys):
+    pass
+
+def UploadImageOptions(sys):
+    while True:
+        os.system('cls')
+        option = input("How would you like to scan your LEGO?\nq- Return to homescreen\n1- Choose an image file of my LEGO piece\n2- Use phone camera to scan LEGO piece\nOption: ")
+        if option.upper() == "Q":
+            sys.pop()
+            break
+        elif option == "1":
+            sys.push("UploadImageFile(sys)")
+            break
+        elif option == "2":
+            sys.push("UseCameraOption(sys)")
+            break
+        else:
+            message = input("Invalid input. Press enter to try again...")
+
+def UploadImageFile(sys):
+    while True:
+        os.system('cls')
+        option = input("Input 'q' to go back. Otherwise, please input path of file you would like to upload: ")
+        if option.upper() == 'Q':
+            sys.pop()
+            break
+        else:
+            try:
+                img = Image.open(option)
+                sys.setImg(img)
+                sys.push("Validation(sys)")
+                break                
+            except:
+                message = input("Invalid file name. Press enter to try again...")
+
+def UseCameraOption(sys):
+    fr = open("userinfo/IPv4.txt", "r")
+    ip = fr.readline()
+    fr.close()
+    ip = ip if len(ip) > 0 else None
+    while True:
+        os.system('cls')
+        print(f"IPv4: {ip}")
+        print("Note: Please ensure you have set up camera before attempting to use, which includes inputting the correct IPv4.")
+        option = input("q- Go back\n1- Help on how to set up camera use\n2- Set or change IPv4\n3- Begin using the phone camera\nOption: ")
+        if option.upper() == 'Q':
+            sys.pop()
+            break
+        elif option == "1":
+            sys.push("HelpUsingCamera(sys)")
+            break
+        elif option == "2":
+            sys.push("UpdateIPv4(sys)")
+            break
+        elif option == "3":
+            if ip == None:
+                print("First input an IPv4 to select this option.")
+                time.sleep(2)
+            else:                
+                sys.push("UseCamera(sys)")
+                break
+        else:
+            message = input("Invalid input. Press enter to try again...")
+
+def HelpUsingCamera(sys):
+    os.system('cls')
+    print("HELP USING CAMERA")
+    print("- To use your phone camera, download an ip camera app on your device. A recommended app to use is 'IP Webcam' on Google Play.")
+    print("- Begin recording from the app. On IP Webcam, scroll to the bottom and select 'start server'.")
+    print("- Take note of the IPv4 of the recording. This is displayed on the screen as you record on IP Webcam.")
+    print("- Ensure you input the correct IPv4 into the program. This will allow it to connect to your phone camera.")
+    print("- When you are ready to use your camera, enter the recording on your app, before pressing the 'use phone camera' option in the program.")
+    print("- Postion the camera above the Lego piece and press the -spacebar- on the keyboard to capture the image for the program to use.")
+    print("- Remember: for best results, take a good image of the LEGO piece. This includes using a block-colour background, preferrably black or white.")
+    print("- It also means containing the whole LEGO piece in the image, with good lighting (minimal shadows or glare) and an image that is not blurry.")
+    print("- If the image does not register correctly, reposition the LEGO piece to a good angle and try again.")
+    option = input("Press enter to return...")
+    sys.pop()
+
+def UpdateIPv4(sys):
+    os.system('cls')
+    fr = open("userinfo/IPv4.txt", "r")
+    ip = fr.readline()
+    fr.close()
+    print(f"Current IPv4: {ip if len(ip) > 0 else None}")
+    option = input("Input 'q' or press Enter to go back. Otherwise, input the new IPv4: ")
+    if option.upper() == "Q" or len(option) == 0:
+        pass
+    else:
+        fw = open("userinfo/IPv4.txt", "w")
+        fw.write(option)
+        fw.close()
+        message = input(f"IPv4 updated to {option}.\nPress enter to continue...")
+    sys.pop()
+
+def UseCamera(sys):
+    #prepare IPv4 url
+    fr = open("userinfo/IPv4.txt", "r")
+    ip = fr.readline()
+    fr.close()
+    if ip[:4] != "http":
+        ip = "http://" + ip
+    if ip[-6:] != "/video":
+        ip += "/video"
+
+    os.system('cls')
+    print("Please ensure you have opened the camera though IP Webcam app.")
+    print("If camera window does not appear on your screen, it is running in the background. Switch to this window.")
+    print("When window is focused and camera is angled sufficiently, press SPACE to capture image, or 'q' to exit")
+    print("Remember: for best results, take a good image of the LEGO piece.")
+    option = input("\nInput 'q' to go back, or press enter to continue: ")
+    if option.upper() =="Q":
+        sys.pop()
+    else:
+        cam = cv2.VideoCapture(ip)
+        print("Camera in use. If you do not see the window, it is running in the background. Please open it.")
+        while True:
+            window_name = "frame"
+            retval, frame = cam.read()
+            cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+            cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+            if not retval:
+                print("Error: failed to get frame")
+                break
+            cv2.imshow(window_name, frame)
+            inp = cv2.waitKey(1)
+            if inp== ord('q'):
+                #q pressed
+                break
+            elif inp % 256 == 32:
+                #spacebar pressed
+                img = frame
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                img_pil = Image.fromarray(img)
+                sys.setImg(img_pil)
+                sys.push("Validation(sys)")
+                break
+        cam.release()
+        cv2.destroyAllWindows()
+
+
+def Validation(sys):
+    img = sys.getImg()
+    elem_list = sys.getElems()
+    colour_list = sys.getColours()
+    hashtable = sys.getHashtable()
+
+    elem, colour, id = getInformation(img, elem_list, colour_list, hashtable)
+    if not id:
+        os.system('cls')
+        message = input("LEGO not detected. Please try again, ensuring you are using a good image.\nPress enter to continue...")
+        sys.pop()
+    else:
+        while True:
+            os.system('cls')
+            print(f"Colour: {colour}, Element: {elem}, LEGO number: {id}")
+            option = input("Is this information correct? y/n: ")
+            if option.upper() == "N":
+                message = input("Apologies. Please try again, ensuring you are using a good image.\nPress enter to continue...")
+                sys.pop()
+                break
+            elif option.upper() == "Y":
+                print("yey")
+                time.sleep(0.5)
+                sys.pop()
+                break
+            else:
+                print("Invalid input.")
+                time.sleep(1)
+
+
+#Functions used in identifying Lego Piece
+def getMax(lis):
+    mx = 0
+    c = 0
+    tmp = 0
+    for i in lis:
+        if i > mx:
+            mx = i
+            tmp = c
+        c+=1
+    return tmp
+
+def get_rgb(img):
+    img = aug.aspect(img)
+
+    newsize = 32
+    img.thumbnail((newsize, newsize))
+    img_c = img.getdata()
+
+    img = ImageEnhance.Color(img).enhance(0)
+    img_g = img.getdata()
+
+    pixels_g = []
+    for pixel in img_g:
+        pixels_g.append(pixel[0])
+
+    corner_pixels = [pixels_g[0], pixels_g[newsize-1], pixels_g[(newsize*(newsize-1))], pixels_g[(newsize*newsize)-1]]
+
+    mx = max(corner_pixels)
+    diff = 0
+    for i in corner_pixels:
+        if mx - i >= 50:
+            diff += 1
+    mx_is_bg = True if diff < 3 else False
+
+    colour_pixels = []
+    for i in range(len(pixels_g)):
+        is_diff = (abs(mx - pixels_g[i]) >= 50)
+        if is_diff == mx_is_bg:
+            colour_pixels.append(img_c[i])
+
+    rgb = [0, 0, 0]
+    for i in colour_pixels:
+        for j in range(3):
+            rgb[j] += i[j]
+
+    rgb = tuple(map(lambda x: round(x/len(colour_pixels)), rgb))
+    
+    return rgb
+
+
+def uploadData():
+    f = open("information.txt", "r")
+    elem_no = 10
+    colour_no = 14
+    elem_list = []
+    colour_list = []
+    colourelem_table = Hashtable(179)
+    number_table = Hashtable(179)
+
+    for i in range(elem_no):
+        elem_list.append(f.readline()[:-1])
+
+    for i in range(colour_no):
+        colour_list.append(f.readline()[:-1])        
+
+    for elem in elem_list:
+        for colour in colour_list:
+            id = f.readline()[:-1]
+            if id != "-":
+                input = int(elem + str(colour_list.index(colour)))
+                hash_index = colourelem_table.hashKey(input)
+                colourelem_table.setItem(hash_index, input, id)
+
+                input2 = int(id)
+                hash_index2 = number_table.hashKey(input2)
+                number_table.setItem(hash_index2, input2, elem + "," + colour)
+
+    f.close()
+
+    return elem_list, colour_list, colourelem_table, number_table
+
+def getID(elem, colour, colour_list, colourelem_hashtable):
+    input = int(elem + str(colour_list.index(colour)))
+    hash_index = colourelem_hashtable.hashKey(input)
+    return colourelem_hashtable.getItem(hash_index, input)
+
+
+def getElem(img, elem_list):
+    #prepare image
+    img = ImageEnhance.Color(img).enhance(0)
+    img_g = img.getdata()
+    bgpixel = img_g[0][0]
+    if bgpixel > 128:
+        img = aug.invert(img)
+        
+        if bgpixel < 205:
+            img = ImageEnhance.Brightness(img).enhance(0.5)
+    else:
+        if bgpixel > 50:
+            img = ImageEnhance.Brightness(img).enhance(0.5)
+
+    img = aug.aspect(img, "max")
+    img = aug.sharpness(img)
+    newsize = 64
+    img.thumbnail((newsize, newsize))
+    #img.show()
+
+    #turn image into data
+    temp_row = []
+    data_matrix = []
+    for i in img.getdata():
+        temp_row.append(i[0] / 255)
+        if len(temp_row) == newsize:
+            data_matrix.append(temp_row)
+            temp_row = []
+
+    #feed data into neural network
+    elem_nn = NeuralNetwork2.upload_saved("love")
+    output = elem_nn.propagate_forwards([data_matrix])
+    output = [x[0] for x in output]
+    elem = elem_list[getMax(output)]
+    
+    return elem
+
+def getColour(img, colour_list):
+    rgb = get_rgb(img)
+    rgb = [[x/255] for x in rgb]
+
+    colour_nn = NeuralNetwork2.upload_saved("colour1")
+    output = colour_nn.propagate_forwards(rgb)
+    output = [x[0] for x in output]
+    colour = colour_list[getMax(output)]
+
+    return colour
+
+def getInformation(img, elem_list, colour_list, colourelem_hashtable):
+    elem = getElem(img, elem_list)
+    colour = getColour(img, colour_list)
+    id = getID(elem, colour, colour_list, colourelem_hashtable)
+
+    return elem, colour, id
+
+#Initialises set data from files for system
+def retrieveSetData(sys):
+    allsetfile = open("userinfo/AllUserSets.txt", "r")
+    allsetdata = allsetfile.readline().strip(",")
+    allsetfile.close()
+    allsetobj = AllSets
+    for setname in allsetdata:
+        setobj = Set(setname)
+        setdata = []
+        setfile = open(f"userinfo/{setname}.txt", "r")
+        for i in setfile:
+            setdata.append(i[:-1])
+        setobj.setSort(int(setdata[0]))
+        setobj.setRequired(int(setdata[1]))
+        for legopiece in setdata[2:]:
+            legodata = legopiece.strip(",")
+            legoobj = Lego(legodata[0], sys.getNumberHastable())
+            legoobj.setAmount(int(legodata[1]))
+            if setobj.getHasRequired():
+                legoobj.setRequired(int(legodata[2]))
+            setobj.addLego(legoobj)
+        allsetobj.addSet(setobj)
+        setfile.close()
+    sys.setAllSets(allsetobj)
+    
