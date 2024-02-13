@@ -1,0 +1,92 @@
+class AllSets:
+    def __init__(self):
+        self.sets = []
+        #self.setNames = []
+
+    def isInSet(self, name):
+        return name in self.setNames
+    
+    def getSet(self, name):
+        return self.sets[self.setNames.index(name)]
+
+    def addSet(self, nset):
+        #self.setNames.append(nset.getName())
+        self.sets.append(nset)
+
+    def removeSet(self, nset):
+        self.setNames.remove(nset.getName())
+        self.sets.remove(nset)
+
+    def noOfSets(self):
+        return len(self.sets)
+
+
+class Set:
+    def __init__(self, name):
+        self.name = name
+        self.set = []
+        self.sort = 0
+        self.hasRequired = 0
+
+    def getName(self):
+        return self.name
+    
+    def changeName(self, new):
+        self.name = new
+
+    def addLego(self, lego):
+        self.set.append(lego)
+
+    def removeLego(self, lego):
+        self.set.remove(lego)
+
+    def getSort(self):
+        return self.sort
+
+    def setSort(self, new):
+        self.sort = new
+
+    def getSet(self):
+        return self.set
+    
+    def getHasRequired(self):
+        return self.hasRequired
+    
+    def setRequired(self, new):
+        self.hasRequired = new
+    
+
+class Lego:
+    def __init__(self, lego_number, number_hashtable):
+        self.lego_number = lego_number
+
+        hash_index = number_hashtable.hashKey(int(lego_number))
+        temp = number_hashtable.getItem(hash_index, int(lego_number))
+        elem, colour = temp.split(",")
+
+        self.colour = colour
+        self.elem = elem
+        self.amount = 0
+        self.requiredAmount = 0
+
+    def getLegoNumber(self):
+        return self.lego_number
+    
+    def getColour(self):
+        return self.colour
+    
+    def getElem(self):
+        return self.elem
+    
+    def getAmount(self):
+        return self.amount
+    
+    def setAmount(self, new):
+        self.amount = new
+
+    def getRequired(self):
+        return self.requiredAmount
+    
+    def setRequired(self, new):
+        self.requiredAmount = new
+
