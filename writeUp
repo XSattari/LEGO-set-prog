@@ -1,9 +1,4 @@
-https://www.overleaf.com/read/hhjspyhtddhq
-
-
-
-
-\input{localstuff}
+             \input{localstuff}
 
 \fancyhead[LO]{Waiss Sattari}
 \fancyhead[RE]{Lego Set Sort}
@@ -42,24 +37,25 @@ https://www.overleaf.com/read/hhjspyhtddhq
 
 LEGOs, according to the Encyclopedia Britannica, are \textit{"plastic building-block toys that rose to massive popularity in the mid-20th century"} \footnote[1]{https://www.britannica.com/topic/LEGO}. These tiny plastic pieces come in a range of shapes and colours, which allow them to be combined to create whatever one can imagine. The company \emph{LEGO} sells these bricks generally as parts of a set, where all the Lego pieces required to create a certain build are boxed together to be purchased and assembled by a consumer; not unlike a jigsaw puzzle.\bigskip
 
-However, also similar to a jigsaw puzzle, pieces from a Lego set can go missing, rendering the final build incomplete. Furthermore, pieces from different sets could become jumbled up, which would require a tedious process of sorting through every single Lego piece, trying to remember which pieces your set requires and how many, to find all the pieces of a particular set.\bigskip
+However, also similar to a jigsaw puzzle, pieces from a Lego set can go missing, rendering the final build incomplete. Furthermore, pieces from different sets could become jumbled up, which would require a tedious process of sorting through every single Lego piece, having to remember which pieces your set requires and how many, until you find all the pieces of a particular set. The 
+more of these pieces you own, the harder this set-sorting process is.\bigskip
 
-This is the problem I aim to solve. My project intends to aid with sorting through Lego pieces, to know which pieces belong to what set, and identify those pieces which are missing so that the user may know what pieces to purchase to complete their set. Such a task can only be performed with the use of a machine learning model, to be able to differentiate between different LEGO pieces. Thus my project will revolve around creating a program that utilises AI to perform the desired task.\bigskip
+This is the problem I aim to solve. My project intends to aid with sorting LEGO sets, to keep a stored inventory of sets, to recognise and identify a piece for you while you sort (what I will refer to as 'scanning' a LEGO piece), and update the set accordingly. This would provide an efficient system of keeping inventory as well as aiding in sorting, which would allow the user to know what items are missing and how many so that they know what pieces to purchase to complete their set. The task of recognising LEGO pieces to aid with sorting can only be performed with the use of a machine learning model, to be able to differentiate and identify different LEGO pieces. Thus my project will revolve around creating a program that utilises AI to perform the desired task.\bigskip
 
-The end user would of course be LEGO enthusiasts, people who own multiple LEGO sets and face the issues of jumbled up sets and missing pieces. One such LEGO enthusiast is a teenager named Jonah. Jonah owns his fair share of LEGO sets, and has agreed to answer some questions for my research into the requirements of my "Lego Set Sort" program.
+The end user would of course be LEGO enthusiasts, people who own multiple LEGO sets and face the aforementioned issues of jumbled up sets and missing pieces. One such LEGO enthusiast is a teenager named Jonah. Jonah owns his fair share of LEGO sets, and has agreed to answer some questions for my research into the requirements of my "Lego Set Sort" program.
 
 \subsection{Research}
 \paragraph*{End-user aided research\\\\}
 
 
-Thanks to Jonah's experience and LEGO knowledge, he has been able to provide information which I may find useful for improving my problem solution, and also present some small requirements of the project for it to be of any use to someone like him. Following a conversation with Jonah, I have been able to identify some key points for consideration:\bigskip 
+Thanks to Jonah's experience and LEGO knowledge, he has been able to provide information which I may find useful for improving my problem solution, and also present some small requirements my solution must have for it to be of any use to someone like him. Following a conversation with Jonah, I have been able to identify some key points for consideration:\bigskip 
 \begin{itemize}
-    \item Every LEGO set contains a manual with building instructions, and towards the end of this manual there is a section containing information on each constituent LEGO piece within the set, including amount and LEGO number. There is a PDF for all of these online, which can be found through the official website. With this, the constituent LEGO pieces and their amounts could possibly be copy pasted from the PDF by the user into the program when they are uploading their set information pre-sorting.\bigskip
-    \item It is likely the user will be sorting the same set more than once e.g. over a large time period to ensure no pieces were lost. Thus it would be efficient if the program can store the data on previous sets sorted, so the set information does not have to be input each time. \bigskip
-    \item Since it is usually the case that multiple sets are jumbled up together, the program should be able to sort LEGO pieces against multiple different sets at the same time, meaning it can scan a piece and identify which of many sets it belongs to, and separate accordingly. \bigskip
-    \item The aforementioned LEGO number is an identification number and is unique to every LEGO piece, so this number would be great to use within the program to differentiate between every piece. Utilising this information would also be useful as the user may use this number to easily search for and purchase any missing pieces online, so as to complete their set (e.g. through a website like www.toypro.com, where you can search for a piece by LEGO number to purchase.)\bigskip
+    \item Every LEGO piece has an element number, which identifies the shape of the piece, and a colour. LEGO pieces of a specific element and colour have a unique LEGO number which identifies the specific piece. This information on element and colour would be useful in implementation if the solution requires identifying LEGO shape and colour separately. \bigskip
+    \item The LEGO number is an identification number and is unique to every LEGO piece, so this number would be great to use within the program to differentiate between every piece. Utilising this information would also be useful as the user may use this number to easily search for and purchase any missing pieces online, so as to complete their set (e.g. through a website like www.toypro.com, where you can search for a piece by LEGO number to purchase.)\bigskip
+    \item Since it is usually the case that the multiple sets that are jumbled up together may contain similar pieces, the user should be able to add the same piece to multiple different sets after it has been 'scanned' by the program. \bigskip
+    \item There are hundreds of different LEGO colours and tens of thousands of elements. That said, only a select few colours and elements make up the majority of pieces that exist. Using this information and focusing only on these common pieces will simplify implementation immensely. \bigskip
 \end{itemize}
-This provided information allows for implementations which would not only make my project more efficient, but would also make it of actual use to the targeted audience, so taking these points into consideration when making my requirements are paramount.
+This provided information from Jonah does not only make my solution more efficient, but would also make it of actual use to the targeted audience, so taking these points into consideration when making my requirements are paramount.
 
 \paragraph*{Convolutional Neural network research\\\\}% MLM research
 
@@ -98,7 +94,7 @@ Sources I have used for my full research include:
 
 \paragraph*{Existing solutions\\\\}
 
-There are no current solutions to my exact problem of sorting LEGO pieces by set as far as I can find searching online, though there does exist LEGO sorting machines which sort Lego pieces by colour or piece type. They do not feature a user interface to interact with the neural network as mine will, nor the functionality dedicated to the task of sorting by set, but the AI they use in identifying the LEGO piece to sort is the same as what I aim to create for my project, so in that regard it is similar.\bigskip
+There are no current solutions to my exact problem of sorting LEGO pieces by set as far as I can find searching online, though there does exist LEGO sorting machines which sort Lego pieces by colour or piece type. They do not feature the functionality of storing and manipulating sets as mine does, but the AI they use in identifying the LEGO piece to sort is the same as what I aim to create for my project, so in that regard it is similar.\bigskip
 
 
 One of the most popular of these is the "Universal LEGO Sorting Machine" created by a man named Daniel West, which he features in a semi-viral video on YouTube\footnote{"The WORLD'S FIRST Universal LEGO Sorting Machine": \url{https://youtu.be/04JkdHEX3Yk}}. In the video we see the impressive hardware dedicated to the task of moving and physically sorting the bricks, but this is not a focus of my own project. He does not go into detail about the software aspect of his build in this video. However, on his YouTube channel, West has another video uploaded which does, a video dedicated to the AI of his machine\footnote{"LEGO Sorter AI: How Does It Work?": \url{https://youtu.be/-UGl0ZOCgwQ}}. \bigskip 
@@ -111,86 +107,255 @@ Daniel West then goes on to explain how he further improves his results by "Fine
 
 \subsection{Proposed solution} % my project
 
- For the AI to interact with the physical world and "see" the piece it is working with, there is need of a camera. It would therefore be effective if the program is run from a mobile device, as these are widely available (nearly everyone owns a mobile phone) and so would be convenient for the target audience. It would eliminate the need to purchase extra hardware which would make it more cost effective for them, and also for myself in the creation and testing of this program. Modern phones also have decent computational power, enough to run the CNN, which makes it a better alternative than something like a raspberry pi which might require connecting to a PC to run the neural network.\bigskip
+My solution features two key aspects. The first is the scanning of LEGO items by image to identify them with use of a CNN, and the second is to allow the user to keep an inventory of their sets within the program. The first aspect may be used as a standalone feature by the user, who might not want to concern themselves with creating an inventory of their sets and only with to use the LEGO identifying capabilities of the neural network. However, the first aspect also stands to act as an extended functionality of the second: that is, to be used for the purpose of adding LEGO pieces which are scanned to a stored set, which may be used for example when a user is physically sorting through sets. Thus, these two aspects are not completely intertwined nor completely independent. \bigskip
 
-On the topic of hardware, the physical process of actually sorting through the LEGO bricks is of course crucial to the purpose of my project -since the problem it aims to solve is with the difficulty of manually sorting- yet I do not want it to be my project's focus; The hardware aspect would derive its quality more so from the amount of money spent on purchasing the parts and time assembling them- less so through my own skills. Thus, I am not concerned with physical efficiency. At the bare bones my project's purpose is to identify LEGO pieces and relay to the user whether or not it is part of a set, so as to aid with a person sorting, instead of tackling the entire process itself. That said, having a way to at least partially automate the sorting process would be desirable to the purpose and functionality of my project, so could be left as a potential upgrade for the far future.\bigskip
 
-My solution will feature a mobile application, where the end user inputs the information of the set(s) they possess including pieces, amount required and amount currently owned. Storing this data will be done through a hash-map data structure. They can begin a "sorting process" to sort against one or more of their sets, where the front camera of the phone, and the convolutional neural network, is utilised. The user takes a temporary photo of the Lego through the application, which gets processed by the CNN. Once the sorting process terminates, the user is provided with the data of the sort, and the set information may be updated.\bigskip
+ For the AI to interact with the physical world and "see" the piece it is working with, there is need of a camera. It would therefore be effective if the program could make use of a mobile device, as these are widely available (nearly everyone owns a mobile phone) and so would be convenient for the target audience. It also eliminates the need to purchase extra hardware like a webcam/document camera, which makes it inexpensive both for the user and for myself in the development of this project. \bigskip
+ 
+ However, I do not aim to create a mobile application as I have no experience doing so, and the neural network I create may prove too computationally demanding, especially a problem for those with older/cheaper phones. My solution to this is for the phone to only be used for its camera- that is, to have the program run from a PC with the phone connected to it if and when the user wants to use their phone to "scan" a piece. Doing so can be achieved through an IP webcam application downloaded on the phone, and use of the "OpenCV" library in my code to connect to the phone's camera. Alternatively, there can be the option on the program to upload a file of an image of the LEGO, so the user may choose to take photos using any device of their choice before transferring the files to their PC by whatever means, so that they may upload these files in the program to be used to "scan". This added functionality would also allow the user to scan images of LEGO they find online, or images they are sent by friends, without the need to physically own the LEGO themselves.\bigskip
 
-My convolutional neural network will be made in Python using Visual Studio, as well as things like the data structures used in the program. I picked Python as many websites rank it first place for "Best language for Machine Learning"\footnote{One such of these websites is https://www.springboard.com/blog/data-science/best-language-for-machine-learning/}, but also as it is a language I am proficient in. Furthermore, it is an object oriented programming language, which is a great paradigm to use for a CNN as it features many loosely related types of layers. The graphical user interface of the program will be tackled using Kotlin in Android Studio, since Kotlin has advantages over Python in mobile development such as a faster compile time. I will use Blender to generate the testing images to train my CNN, using any 3D models of Lego pieces I may find, while also using a few real images to fine tune my model.\bigskip
+Regarding the second key aspect, my solution will provide the functionality for the end user to input the information of the set(s) they possess including LEGO number of the item, the amount required of the item and the amount that is currently owned. Storing this data will be done using text files. Upon starting the program, all files are read from to initialise the sets in the program, and the text files are updated after any changes are made by the user to a set. For added practicality, I would like my solution to also provide the user with information on things like element number and colour of an item in a set, and for the items within a set to be sorted by its attributes ascending or descending, such as by LEGO number, element number, colour, amount owned, amount required, or amount needed to complete a set. \bigskip
 
-My project does come with a few limitations. Of course, there are the time and monetary constraints- creating an AI and testing it on data to a satisfactory level of efficiency is a lengthy process, so given the time constraint my machine learning model may not be as accurate as I could make it. The monetary constraint is not too much of an issue given my project's software focus, but it does limit the Lego sets I may purchase to test or fine tune my machine learning model. Training my CNN to recognise even a single Lego piece would require a great load of images of that one piece, so time will also affect the number of different Lego pieces my CNN may learn to recognise, as will whether or not I am able to find a digital 3D model of certain Lego pieces. Thus, my machine learning model will be limited in the number of Lego pieces it may recognise. Another limitation is the efficiency in which the Lego piece information for existing Lego sets may be input into the system. It may prove tedious to have to manually input all the information, especially for large Lego sets. Ideally, my program would have a database of all of these existing Lego sets so the user won't have to manually enter the information themselves. This is a feature I will loosely employ, featuring only some popular Lego sets, as there are tens of thousands of official Lego sets out there and again, I am limited in time.\bigskip
+As for the first key aspect, my solution will feature a method to identify LEGO pieces by an image, received by phone or by uploaded file as previously mentioned, and this is where the 'AI' of the solution is utilised. However, there is a glaring issue with this aspect- there are many different LEGO pieces which would appear similar to the neural network, since different LEGOs share the same shape and colour. The neural network would have to be very large and complex to differentiate between both shape and colour, which would greatly increase time training, computational demand of training, and would require a very large labelled dataset- something that would be very difficult to obtain. \bigskip
+
+To combat this issue, I have decided to instead identify a LEGO item's element and colour separately. Every LEGO piece has a unique element and colour combination, therefore a LEGO item and its identifying number can be deduced from knowing the element number of the piece and its colour. Therefore, the element and colour of the piece will be determined with separate neural networks, and these will be used to determine the LEGO number of the item from a hashtable. After identifying the item, the user is then presented with the information- which includes the LEGO number, element number and colour- after which they may choose to add this item to a set(s) at a specified amount. \bigskip
+
+There are a few online datasets for LEGO pieces. For my solution I will use a dataset from Kaggle by Joost Hazelet.\footnote{https://www.kaggle.com/datasets/joosthazelzet/lego-brick-images} I will not be using the entire dataset, rather I will be hand picking certain LEGO elements. As mentioned by Jonah the LEGO enthusiast, the most common elements make up a large proportion of existing pieces, so it is imperative I focus on these. I will determine what elements by finding the overlap of elements in the dataset and the elements that exist in the top 30 most common elements using a website 'Brick Architect'.\footnote{https://brickarchitect.com/most-common-lego-parts/} From these elements I will select 'nice' images, where the angle of the piece is adequate enough to determine the element easily. This is all for the purpose of making differentiation as easy as possible for my neural network, given that the task is complicated and I do not have access to great resources or time.\bigskip
+
+As for the image classification, I will create an algorithm to deduce an RGB value representing the RGB colour of the LEGO piece from an image. The issue is that although LEGO items have discrete colours, images of items are affected by things like glare, shadows, etc. Thus, the RGB values of two LEGOs of the same colour from separate images will differ from each other. To combat this, I will use another neural network dedicated to identifying a LEGO colour by the RGB value, using a dataset created by the 'ICT Institute'.\footnote{https://ictinstitute.nl/legocolor-computer-vision-dataset/}\bigskip
+
+I have decided to create my solution using python. I picked Python as many websites rank it first place for "Best language for Machine Learning"\footnote{One such of these websites is https://www.springboard.com/blog/data-science/best-language-for-machine-learning/}, but also as it is a language I am proficient in. Furthermore, it is an object oriented programming language, which is a great paradigm to use for a CNN as it features many loosely related types of layers, and also good since my solution will utilise a lot of classes, for things such as sets and LEGO but also for data structures like stacks or the hashtable. \bigskip
+
+My project does come with many limitations. Of course, there exists the time constraint- creating an AI and testing it on data to a satisfactory level of efficiency is a lengthy process, so given the time constraint my machine learning model may not be as accurate as I could make it. Training my CNN to recognise even a single Lego element would require a great load of images of that one piece, so time will also affect the number of different Lego elements my CNN may learn to recognise. Thus, my machine learning model will be limited in the number of Lego pieces it may recognise.Furthermore, testing a neural network is usually done on expensive equipment over the course of days or even weeks. This represents a monetary limitation as I do not have such resources on my PC, and do not wish to waste too much electricity training. This would affect training time and thus accuracy, and again I would have to make compromises with the amount of elements my neural network can recognise. A limitation of the inventory aspect is the efficiency in which the Lego set information is input into the system by the user. It may prove tedious to have to manually input all the information, especially for large Lego sets. I do not wish to bite more than I can chew, so I will have to make do with a simple implementation of the inventory aspect, which would allow me to focus on the neural network aspect.\bigskip
 
 \subsection{Project objectives} % High+Low level requirements: machine learning models, ui, etc
-The following list is not in order of importance but rather the order in which it may be operated by a user. The most important aspect of my project is the convolutional neural network, followed by the GUI. The CNN needs only be created and trained, then added to the program. These objectives flesh out necessary processes and features in the actual operation of the program, which the user interacts with. High-level, important objectives are denoted with a H, while low-level, extra features are denoted with an L. After completing the creation of my convolutional neural network, I will build the program taking into account all of the H objectives, and once that is done I will incorporate as many of the L objectives as I can.\bigskip
+My objectives are split into two categories, the Neural Network aspect and all it encompasses, and the main program aspect- which would include the stored inventory aspect and all other functionalities of the program. These categories are split into their key objectives, which are broken further into smaller sub objectives. All objectives are ranked by their importance. High-level objectives are denoted with 'H', while low-level objectives are denoted with an 'L'. High level objectives take high priority in being implemented and are what I deem integral to the solution, while low level objectives represent added features and functionality which would be nice to include in the program, or features which would only prove to improve the final solution but are not necessary.\bigskip
 
+Neural network aspect:
 \begin{enumerate}
-    \item H. The user can run the program from an application on their mobile device.
+    \item H- There exist the Layer classes, a Neural Network class and a class for all the functions used by these two classes.
     \begin{enumerate}
-        \item H. Upon entering the application, the user is at a "home screen" where all of their sets are displayed by name.
+        \item H- The class of functions will comprise of all the functions related to manipulating matrices. This will include creating a matrix of a given size, creating an identity matrix of a given size, matrix addition, subtraction, transposing a matrix, dot product of matrices, hadamard product of matrices, scaling a matrix, raising the matrix to a power, finding the dimensions of a matrix, changing the dimensions, rotating a matrix, and copying a matrix. It will also include the special matrix operations used by the convolutional layer and max-pooling layer, being to perform a convolution of a matrix with another, and to pool a matrix. Other functions in this class includes calculating the mean-squared error and finding the rate of change of the error, both used for back-propagation, and finally a function to shuffle a list of data, which will be used in shuffling training data when training a neural network.
+        \item H- The layer classes will all inherit from a base template layer class, with attributes of input, output, rate of change of these, and base methods of forward propagation, backward propagation, and a method to get the type of layer. These methods will all be overridden and implemented differently by the specialised children classes, and these children classes will have their own attributes as well as getters and setters for these. The layers to implement include:
         \begin{enumerate}
-            \item H. Tapping on a set from the home screen takes the user to a separate screen where they can view all of the information for that set.
-            \item H. There is a separate button on their screen which allows them to begin a sorting process.
-        \end{enumerate}   
-    \end{enumerate}
-    \bigskip
-    
-    \item H. User can input the information of their sets.
-    \begin{enumerate}
-        \item H. Created sets and their information are stored on text files, which are updated whenever changes are made, or deleted when the set is removed.
-        \item H. User can "add new set", where they create their set to begin adding its information..
-        \begin{enumerate}
-            \item H. User given pop-up to create set, prompted to give the set a name.
-            \item H. If "cancel" button pressed, does not create the set. If "create" button pressed, text file created.
-            \item L. The user may choose to add an existing set, from a limited selection of official Lego sets stored on text files, which may be searched for by the user using the set ID.
-            \item L. The user may choose to save their own sets to a file like these, which can act as a backup if they delete their set.
+            \item H- Hidden layer, aka fully connected layer
+            \item H- ReLU activation layer, introduce non-linearity
+            \item H- Softmax activation layer, assigning probabilities to output
+            \item H- Convolutional layer, for the CNN
+            \item H- Max-pooling layer, for the CNN
+            \item L- Dropout layer, for reducing over-fitting of data in training
         \end{enumerate}
-        \item H. User can input the Lego pieces into their set.
+        \item H- The neural network class will create an object that holds layer objects, and is essentially the neural network being used. The object will be given a name upon initialisation, which could be used to reference the purpose of it, and it will have the methods to add layers to the neural network object. Other functionalities of the class includes:
         \begin{enumerate}
-            \item H. User must input the Lego number of the piece, as well as the amount required in the set.
-            \item H. All of these pieces are stored in a hash-map data structure, which includes the colour and brick type of the Lego piece, as well as a small png image to display it.
-            \item L. The user may add multiple pieces at a time by pasting the information off of the online PDF of the building instructions of their set- instructions will be provided to the user of how to do this.
-            \item H. All items of the set display the image, Lego number, amount required, and amount currently owned, which is defaulted to zero when a Lego piece is added, but may be changed after by user.
-            \item H. After all changes are made, user must save changes with save button before they leave the screen of the particular set.
-            \item L. If they try to leave without saving, given pop-up to confirm or cancel changes made.
-            \item H. If saved, file containing set information is updated
-        \end{enumerate}
-        \item L. User is given options to alter/navigate their set.
-        \begin{enumerate}
-            \item H. The set name may be changed by the user, and pieces can always be added or removed.
-            \item L. The is an option to min or max the number of "currently owned" pieces for all Lego pieces in the set, meaning they can set this value to zero or the highest for all pieces.
-            \item L. There are filter options for the user to navigate their set info, such as filtering by colour or piece type.
-            \item L. The user can sort the Lego pieces by the amount of pieces owned, the percentage of the required amount owned, or by the required amount itself. 
-            \item These options may be sorted from low to high or from high to low.
-            \item L. The user is given basic statistics of their set, such as the number of different Lego pieces, the total amount of Lego pieces required/owned, and the percentage of "how complete" their Lego set is.
+            \item H- The ability to propagate forwards and backwards through all layers.
+            \item H- The functionality to train the neural network on given data using the features listed directly above. Trains on every piece of data for a fixed amount of times specified by the epochs.
+            \item L- Training is done based on batch size. A forward propagation is run with data for the amount specified by the batch size, the mean of the rate of change of errors is found, and then this is what gets used to perform backwards propagation.
+            \item H- The ability to save a neural network object to a file, and to upload a saved neural network from this file. This feature is imperative.
+            \item L- Display the layers held in the neural network object.
         \end{enumerate}
     \end{enumerate}
     \bigskip
     
-    \item H. The user can enter the "sorting process". This is started by pressing the button to begin sorting found on the home screen, and can be terminated by the user at any time with another button.
+    \item H- Image data is augmented when used to train (domain randomisation)
     \begin{enumerate}
-        \item H. The user must sort against one or more of their inputted sets. 
-        \item L. If multiple sets are selected, the user may choose to prioritise sets, meaning that a Lego piece which could be from multiple sets is identified as being part of the priority set. 
-        \item L. If there are multiple priority sets, then an algorithm loops through each one by one with every shared Lego piece, so that it is evenly distributed between them. 
-        \item H. If no priority sets are selected, then the same algorithm is used to share the pieces evenly among all the sets.
-        \item H. When taking the temporary image of the Lego piece, the phone's flash is turned on. 
-        \item H. The user is prompted to use a white background, good angle, and only have the single piece in frame, which they are reminded of if the CNN is unable to recognise the Lego piece from the photo.
-        \item L. At the end of the sorting process, the user is given statistics such as the number of pieces found for each set and the number of redundant pieces. 
-        \item H. The user is also given the option to replace or increment the "currently owned" amount of pieces within a given set to the new number of pieces identified during the sorting process
+        \item H- Image undergoes geometric augmentations. The augmentation is decided randomly from multiple options, or multiple augmentations may be applied at once. These would include:
+        \begin{enumerate}
+            \item H- Crop. This crops the image in such a way that the object remains in the image but is off-centred randomly
+            \item L- Rotation. This rotates the image by a random angle.
+            \item L- Zoom. This zooms into the image to make the object take up more space in it, while still being fully visible in the image.
+        \item H- Image undergoes non-geometric augmentations. These include:
+        \begin{enumerate}
+            \item H- Brightness. How much image is dimmed decided randomly.
+            \item L- Contrast. Again, decided randomly.
+            \item H- Sharpness. How blurry image is decided randomly.
+        \end{enumerate}
+        \end{enumerate}
     \end{enumerate}
     \bigskip
     
-    \item H. During the sorting process, the program must be able to identify the Lego piece from the image it receives.
+    \item H- The image and element of a LEGO item can be deduced from an image
     \begin{enumerate}
-        \item H. The image is fed into the convolutional neural network, which is trained to recognise the type of Lego piece in the image. 
-        \item H. A separate algorithm is responsible for deducing the colour of the Lego piece. 
-        \item H. This algorithm takes the pixel colour values from the image and compare them to the hexadecimal colour values of official Lego colours to determine the colour of the Lego piece. It must account for the white background and any shadows in the image.
-        \item H. Together, the brick type and colour are used to find the Lego number of the piece, stored in a hash-map data structure. 
-        \item L. If no items are found in the location, as previously mentioned, the program prompts the user to retake the image in better, specified conditions.
+        \item H- The element is deduced by having the image passed scaled to an appropriate size before being passed into the element CNN.
+        \item H- An algorithm finds the RGB value of the LEGO item from an image
+        \item H- The RGB value deduced from an image is passed into a NN for determining the colour of the LEGO item.
+        \item H- A hashtable data structure exists which takes element and colour as a key, and has the LEGO number as the value. Upon initialisation of the program, a file containing information on all elements, colours, and LEGO numbers is read, which is used to initialise the hashtable.
+        \item H- The element and colour are used to find the LEGO number from the hashtable, and all this information is relayed to the user.
     \end{enumerate}
     \bigskip
+
+Main program aspect:
+    \item H- There exists classes for Sets, LEGO pieces, and a class 'AllSets' that contains all the sets in the program.
+    \begin{enumerate}
+        \item H- The 'AllSets' class contains a list set objects, with options to add and remove sets, as well as getters and setters.
+        \item H- The Set class contains a list of LEGO objects. The class contains information on the set such as its name, whether the LEGOs in it have a required amount or not, and how they are sorted and displayed in the set. It also contains methods to manipulate these attributes.
+        \item H- The LEGO class contains information on the item's LEGO number, which it uses to deduce its attributes for element and colour, done so using another hashtable that instead uses the LEGO number as a key and the element and colour as values. It also has attributes of amount and required amount, and has methods to manipulate these.
+        \item H- A folder contains files with information on all sets. In this file is stored the names of all sets in the program, and initialised into an all sets object when the program is run.
+        \item H- There also exists files in the folder for every set, with the exact name of the set. These contain information on the sets attributes, and for the LEGO pieces in the set including their amounts. This is also all initialised into objects at the start of the program.
+        \item H- Making any changes to sets or items or amounts leads to changing the objects that represent them, which are then used to update the files stored such that changes made are saved.
+    \end{enumerate}
+
+    \item H- Sets and the items they contain can be manipulated by the user.
+    \begin{enumerate}
+        \item H- Sets can be added or deleted, and must have a unique name.
+        \item L- Sets can be uploaded from a stored database of existing official LEGO sets.
+        \item L- Sets can be duplicated under a different name or backed up to be restored.
+        \item H- Within a set, set information and the LEGO items of the set are displayed, including the items LEGO number, element, colour, amount, required amount and a small image of the LEGO item.
+        \item H- The set also displays statistics of the set, such as the number of different LEGO items, and the total number of pieces. If the set has a required amount for pieces, then it also displays the total number required and a percentage of how complete the LEGO set is. \item L- Sets can be filtered by element or by colour.
+        \item H- Set information can be changed. This includes:
+        \begin{enumerate}
+            \item L- Changing whether or not the set's pieces have a required amount
+            \item L- Changing the set's name
+            \item H- Changing how the set sorts its LEGO items. Sorts can happen by LEGO number, by element, by colour, by date added, by amount inset, by amount required, by amount needed to fulfill required and by percentage of required currently owned. This can all be done ascending or descending.
+        \end{enumerate}
+        \item H- LEGO items within the set can be changed. This includes:
+        \begin{enumerate}
+            \item H- Changing the amount of the item in the set.
+            \item H- Changing the amount required in the set, if it has amount required.
+            \item H- Removing an item from the set.
+            \item H- Adding an item to the set. This can be done by LEGO number, or directs user to 'scan' a LEGO image.
+            \item L- Min/max the amount of all items in the set. Min sets to 0, which is useful if user wishes to begin sorting set again from jumbled up LEGO and store the new amounts in the program's set. Max sets amount to amount required, if there is an amount required.
+        \end{enumerate}
+        \item H- When making changes to set, user is taken to separate screen. After making their changes, they may save changes or exit, which cancels all changes made.
+    \end{enumerate}
+    \bigskip
+
+    \item H- Main program uses a stack to store 'states' of the program that the user interacts with. As the program runs, the top "state" is constantly in effect.
+    \begin{enumerate}
+        \item H- States are represented by functions, and are essentially the screens that the user sees.
+        \item H- Upon entering a new state, the function of the state is pushed onto the main program stack.
+        \item H- If the user wishes to return to the previous screen, then the current state is pushed off of the stack.
+        \item H- Every function takes the main program stack as an argument. The main program stack object is also used to carry around data between the stacks, such as hashtables and the AllSets object.
+    \end{enumerate}
 \end{enumerate}
+
 \section{Design}
+\subsection{Overall system design}
+
+My solution will have the functionality to identify a LEGO item from an image, and to hold a stored inventory of LEGO sets for the user. 
+
+
+\begin{center}
+\includegraphics[width=10cm]{Images/hierarchy-Page-1.drawio2.png}
+\end{center}
+
+At the highest level of abstraction, this hierarchy chart demonstrates the subroutines of the main program. It displays the core functionalities my solution requires, decomposed into the two distinct sections of LEGO identification and LEGO storage. \bigskip
+
+Identifying the LEGO requires the image being uploaded, and finds the RGB value of the LEGO deduce the LEGO colour. It then finds the LEGO element, and uses colour and element to get the LEGO number. Finding element and colour makes use of machine learning models. Creating these involved implementation, training, and tweaking of parameters, which took a great deal of time and effort and made up the bulk of the creation of the solution. Thus, the hierarchy chart of the main program represented above is merely the tip of the iceberg of the solution. \bigskip
+
+The LEGO storage aspect performs the task of retrieving stored LEGO data and set data. It deals with the altering of set information, and updating the stored set data to the new altered data. \bigskip
+
+\subsection{Main program flowchart}
+
+The flowchart below illustrates the processes that take place when the main program is run. The main program makes use of a 'main program stack' and 'program states' to provide the interface for the user to utilise the functionalities of the program. The program states essentially represent the different 'screens' presented to the user as the program runs, and are implemented as subroutines. The functionalities of the program state includes displaying text to the user, getting input from the user, performing specific tasks, and flowing to other states, and all functionalities are implemented differently specific to the purpose of the state.
+
+\begin{center}
+\includegraphics[width=4.5cm]{Images/flowchart.drawio.png}
+\end{center}
+
+Once the program is run, it begins by retrieving stored LEGO data. This data includes a list of all the LEGO colours and LEGO elements that the program can identify, as well as the LEGO numbers of all items that have these specific elements and colours, and all of this data is stored in a file. Retrieving the data produces two arrays, one containing the colour and one the element, and two hashtables. One hashtable allows for the LEGO number of an item to be looked from its colour and element, and another does the reverse, finding the colour and element of a LEGO item from the LEGO number. \bigskip
+
+The program then creates the main program stack, which is an object implemented as a stack data structure but with attributes and getters/setters for these attributes to allow data to be accessed by the program states as the program runs. This data includes the stored LEGO data we just retrieved, thus the object is initialised with the arrays and hashtables. \bigskip
+
+After this, the information of the user's sets is retrieved from the files that store them, which includes a file containing the names of every set, and a separate file for each of these sets. Each set is made into a set object, containing LEGO objects of items in the set, and all sets get added to an AllSets object, which is stored in the main program stack, which gives program states access to all the sets and the items in each set during program execution. \bigskip
+
+The 'Home screen' program state is then pushed onto the main program stack, as the starting state of the main program. Finally, the main program runs an indefinite loop of executing the state at the top of the stack. During the execution of the state, it may push another state to the top of the stack, or pop itself off, which would result in a different state being the current state. Different states and how they link are covered in more detail later. \bigskip
+
+\subsection{Stack and hashtable data structures}
+
+\paragraph*{Main program stack\\\\}
+
+The main program stack is implemented as a stack data structure. This means that it can store items, in a last in first out 'LIFO' basis, and has the methods to push, peek and pop items. \bigskip
+
+The stack contains an array which stores items, and has a top pointer initialised at index 0 of the list. When an item is being pushed onto the stack, the item is added to the array at the position of the pointer, and the pointer is incremented by one. In performing a peek, the item at the index of the pointer minus one- the item below the position of the pointer- is returned. This is only done if the value of the position is greater than zero, otherwise the stack is empty and there is nothing to return. The same is true in performing a pop. If the pointer is larger than 0 the stack is not empty, so the pointer is decremented by 1 and the item at the index of the new pointer is removed, which can be achieved simply by popping the last item from the array.
+
+This is all represented in the diagram below. The stack at the top represents a stack object before any actions are performed on it. Below it is the same stack after performing a push, then a peek, and finally a pop, which returns it back to its original state.
+
+\begin{center}
+\includegraphics[width=15cm]{Images/stack2.drawio.png}
+\end{center}
+
+Aside from having the functions of a stack data structure, the main program stack also has attributes which allows it to hold any data required by program states during their execution. This includes data on LEGO colours/elements, hashtables, and the AllSets object which allows access to every set and their constituent items. These attributes have getters and setters to retrieve and change them. The main program stack class is summarised in the class definition below. \bigskip
+
+
+\begin{table}[h!]
+\begin{tabular}{|l|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}Object\\ variables\end{tabular} & Type    & Description                                                                                                                                         \\ \hline
+Stack                                                      & List    & Holds the items stored in the stack                                                                                                                 \\ \hline
+Pointer                                                    & Integer & \begin{tabular}[c]{@{}l@{}}Points at the location above the last item in the stack. \\ Value represents index of this location\end{tabular}         \\ \hline
+CurrentImg                                                 & Object  & The image that the program is currently working with                                                                                                \\ \hline
+CurrentSet                                                 & Object  & The set that the program is currently working with                                                                                                  \\ \hline
+Elements                                                   & List    & Contains all LEGO elements that the program recognises                                                                                              \\ \hline
+Colours                                                    & List    & Contains all LEGO colours the the program recognises                                                                                                \\ \hline
+ColourElemHashtable                                        & Object  & \begin{tabular}[c]{@{}l@{}}Hashtable that takes a  colour and element, and returns the \\ LEGO number of the item with these qualities\end{tabular} \\ \hline
+NumberHashtable                                            & Object  & \begin{tabular}[c]{@{}l@{}}Hashtable that take a LEGO number and returns the colour \\ and element of this item\end{tabular}                        \\ \hline
+AllSets                                                    & Object  & Object which contains objects of every set in the program                                                                                           \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+The main program stack object is instantiated with Elements, Colours, ColourElemHashtable and NumberHashtable taken as arguments. The stack is initialised as an empty list, and pointer as the integer 0. CurrentImg, CurrentSet, and AllSets are initialised as None.\bigskip
+
+
+\begin{table}[h!]
+\begin{tabular}{|l|l|l|}
+\hline
+Method                                                            & Input/Output                                                           & Description                                                                                                                                                         \\ \hline
+Push                                                              & Input: program state                                                   & \begin{tabular}[c]{@{}l@{}}Pushes program state onto the stack. Added to \\ stack list at index of pointer, and the pointer is \\ incremented by 1\end{tabular}     \\ \hline
+Pop                                                               & None                                                                   & \begin{tabular}[c]{@{}l@{}}If pointer larger than 0, pops last item from stack \\ list. and decrements pointer by 1. Otherwise, print \\ "stack empty"\end{tabular} \\ \hline
+Peek                                                              & Output: program state                                                  & \begin{tabular}[c]{@{}l@{}}If pointer larger than 0, returns the item from stack \\ list at index of pointer - 1. Otherwise, print \\ "stack empty"\end{tabular}    \\ \hline
+GetElements                                                       & Output: elements list                                                  & Returns list of elements                                                                                                                                            \\ \hline
+GetColours                                                        & Output: colours list                                                   & Returns list of colours                                                                                                                                             \\ \hline
+\begin{tabular}[c]{@{}l@{}}GetColourElem\\ Hashtable\end{tabular} & \begin{tabular}[c]{@{}l@{}}Output: ColourElem\\ Hashtable\end{tabular} & \begin{tabular}[c]{@{}l@{}}Returns hashtable that has LEGO numbers as \\ values\end{tabular}                                                                        \\ \hline
+\begin{tabular}[c]{@{}l@{}}GetNumber\\ Hashtable\end{tabular}     & \begin{tabular}[c]{@{}l@{}}Output: Number\\ Hashtable\end{tabular}     & \begin{tabular}[c]{@{}l@{}}Returns hashtable that has colours and elements \\ as its values\end{tabular}                                                            \\ \hline
+GetImg                                                            & Output: image                                                          & \begin{tabular}[c]{@{}l@{}}Returns the image that the program is currently \\ working with\end{tabular}                                                             \\ \hline
+SetImg                                                            & Input: image                                                           & \begin{tabular}[c]{@{}l@{}}Sets current image of program to the inputted \\ image\end{tabular}                                                                      \\ \hline
+GetSet                                                            & Output: set                                                            & \begin{tabular}[c]{@{}l@{}}Returns the set that the program is currently \\ working with\end{tabular}                                                               \\ \hline
+SetSet                                                            & Input: set                                                             & Sets current set of program to the inputted set                                                                                                                     \\ \hline
+GetAllSets                                                        & Output: AllSets                                                        & Return AllSets object                                                                                                                                               \\ \hline
+SetAllSets                                                        & Input: Allsets                                                         & \begin{tabular}[c]{@{}l@{}}Sets the AllSets attribute to the inputted \\ AllSets object\end{tabular}                                                                \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+\paragraph*{Hashtable\\\\}
+
+A hashtable is a dictionary which takes a key, performs a hash function on the key to get an index, and checks an array at the position of the index for the value. However, it is nearly always the case that two keys produce the same index, in what is known as a collision. In the event this happens, the hashtable must handle the collision. \bigskip
+
+Items are added to a hashtable as a list containing the key and the value. If two keys produce the same index location, then the hashtable can simply add the key-value pair to the next available location in the table. When it comes to finding an item, the hashtable goes to the index location calculated with the key and compares the key to the key at the location. If it is a match, then it can return the value. If not, then it knows to keep searching contiguous locations to eventually find what it is looking for. If it reaches an empty location, it knows the value was never added so the hashtable doesn't contain it. This is one way to handle collisions. However, this process can result in many computations to eventually find the value or to deem it not in the table. Thus, I implemented collision handling in a different way. \bigskip
+
+My solution instead adds items to a hashtable as a list containing a key, a value, and an empty list. The empty list contains the index locations of collided items. When adding an item, if the table already contains an item at the calculated index location, it runs the same process of finding the next available location. However, this time it gets the index value of the new location and adds it to the collided items list at the original index location. Thus, when it comes to finding an item, if the key at the location does not match, then the hashtable checks the locations for each index in the collided items list at this location. It compares its key to the key at each of these locations, and if it finds a match it has found the item it is looking for. If it finds no matches from any of these locations, then it knows the item does not exist in the table. This method of a collided items list pointing to locations of collided items requires less computations than the first method, especially so the more collisions that occur. \bigskip
+
+The hashtable has a fixed size, the value of which can affect the number of collisions that occur. Generally the less collisions the better, as it means retrieving a value requires less computations in searching for it. Another factor that affects the number of collisions is the hash function used, as different functions result in different indexes calculated and ideally the function should produce as little duplicate indexes from different keys as possible. For my hashtable I decided to use a table size of 179 and a hash function of \( (key*3)\) mod \(size\). Modding by size ensures that the calculated index is always in range of the table. I picked this size and function as they have resulted in the least amount of collisions, found through trial and error. \bigskip
+
+The class definition below details the attributes and methods of the hashtable class.\bigskip
+
+\begin{table}[h!]
+\begin{tabular}{|l|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}Object\\ variables\end{tabular} & Type    & Description                                                            \\ \hline
+Size                                                       & Integer & The size of the hashtable, max number of items it can contain          \\ \hline
+Contents                                                   & List    & The table itself, a list of fixed size specified by the size attribute \\ \hline
+Collisions                                                 & Integer & The number of collisions from adding items to hashtable                \\ \hline
+NoOfItems                                                  & Integer & Total number of items that have been added to the hashtable            \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+A hashtable object is instantiated with Size taken as an argument. The contents is initialised as a list of None values, of size Size. Collisions and NoOfItems are both initialised as 0. \bigskip
+
+\begin{table}[h!]
+\begin{tabular}{|l|l|l|}
+\hline
+Method        & Input/Output                                                                         & Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          \\ \hline
+GetContents   & Output: Contents                                                                     & Returns the list of contents of the hashtable                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        \\ \hline
+HashKey       & \begin{tabular}[c]{@{}l@{}}Input: key\\ Output: index\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}Returns the index calculated from passing key through\\ a function. Index = (key*3) mod size. Mod by size\\ ensures index is in range of table.\end{tabular}                                                                                                                                                                                                                                                                                                                                                              \\ \hline
+SetItem       & \begin{tabular}[c]{@{}l@{}}Input: index, key,\\ value\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}If NoOfItems equal to Size, return "table full".\\ Otherwise, increment NoOfItems by 1. If location\\ at index is None,  there is no collision,  so add \\ {[}key, value, {[}{]}{]} to this location. If there is a collision, \\ then increment collisions by 1, and keep checking\\ subsequent index locations until empty location found.\\ Add {[}key, value, {[}{]}{]} here,  get the index of this location\\ and add it to the collided items list of original location.\end{tabular}                              \\ \hline
+GetItem       & \begin{tabular}[c]{@{}l@{}}Input: index, key\\ Output: value or\\ False\end{tabular} & \begin{tabular}[c]{@{}l@{}}Check contents at index. If it is None, item not in table.\\ Return False. Otherwise, compare key to key at index.\\ If match, return value from this index. Otherwise, there\\ could have been a collision. Check collided items list at\\ this location. For every index in the list, compare key to\\ the key at this index location. If there is a match, return\\ the value from the location of the matched key. If there\\ are no matches for all index locations, item not in table.\\ Return False.\end{tabular} \\ \hline
+GetCollisions & Output: collisions                                                                   & Returns the number of collisions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     \\ \hline
+GetNoOfItems  & Output: NoOfItems                                                                    & Returns the total number of items in the hashtable                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \\ \hline
+\end{tabular}
+\end{table}
 
 \subsection{The Convolutional Neural Network}
 
@@ -272,12 +437,7 @@ The basic building blocks of the neural network, the different layers specified 
 
 There exists a \textit{has a} relationship, with a Neural Network object having many Layer objects related to it. There is no need for a layer to exist independently of a Neural Network; The layer only has a function when it is part of a neural network, and multiple neural networks cannot share the same layer as the parameter values of the layer will be unique and specialised for the neural network it exists in. Considering this, it would make more sense that the association between the objects is \textit{composition} and not \textit{aggregation}. This means that there is a strong relationship between a neural network object and a layer object that exists in it: The layer is only created to exist in the neural network that it is instantiated in, and serves no value if the neural network object that contains it ceases to exist. \bigskip 
 
--INSERT ASSOCIATION DIAGRAM- \bigskip 
-
-Initialising a neural network object will require a name, to identify the NN. Upon initialisation, a \textit{Network_Layers} list will be created, that stores all the layers in the neural network.
-As for the methods of the Neural Network Class, it will of course need the ability to initialise and add the different types of layers into the neural network object. With the layers, the NN class will need the fundamental operations of forward propagation and backwards propagation, where it propagates through every single layer one after the other and returns an output. Building on these two methods, the class will have a \textit{learn} method where it runs a single training cycle, and then from this a \textit{training} method where training data is used to run multiple training cycles. Once the neural network has completed training and is able to perform its task, it will need a way to be saved so that it can be used later without having to re-train it. Thus, a \textit{save_NN} and \textit{load_NN} method will be needed. For added functionality, the NN class will have a \textit{view_saved} method to view all saved neural networks so the user can know what NNs can be loaded, and this method will use a class variable list that exists to store all saved neural networks. \bigskip 
-
-
+INSERT ASSOCIATION DIAGRAM, then deleted paragraph\bigskip 
 
 \paragraph*{Dense Layer\\\\}
 
@@ -294,10 +454,12 @@ Class method. Displays the names of all saved neural networks.
 
 
 Static method. Takes name of neural network as parameter. If a saved neural network exists
-
 with this name, then it loads the NN- initialises an object of this saved NN using the stored
-
 information of its layers and parameter values, creating an exact replica.
 
 
 Adds a layer to the neural network. Network-Layers list updated. 
+
+deleted paragraph:
+Initialising a neural network object will require a name, to identify the NN. Upon initialisation, a \textit{Network_Layers} list will be created, that stores all the layers in the neural network.
+As for the methods of the Neural Network Class, it will of course need the ability to initialise and add the different types of layers into the neural network object. With the layers, the NN class will need the fundamental operations of forward propagation and backwards propagation, where it propagates through every single layer one after the other and returns an output. Building on these two methods, the class will have a \textit{learn} method where it runs a single training cycle, and then from this a \textit{training} method where training data is used to run multiple training cycles. Once the neural network has completed training and is able to perform its task, it will need a way to be saved so that it can be used later without having to re-train it. Thus, a \textit{save_NN} and \textit{load_NN} method will be needed. For added functionality, the NN class will have a \textit{view_saved} method to view all saved neural networks so the user can know what NNs can be loaded, and this method will use a class variable list that exists to store all saved neural networks. \bigskip 
