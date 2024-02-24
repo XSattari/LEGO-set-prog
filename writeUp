@@ -298,6 +298,7 @@ The main program stack object is instantiated with Elements, Colours, ColourElem
 
 
 \begin{table}[h!]
+\noindent\makebox[\textwidth]{
 \begin{tabular}{|l|l|l|}
 \hline
 Method                                                            & Input/Output                                                           & Description                                                                                                                                                         \\ \hline
@@ -315,6 +316,7 @@ SetSet                                                            & Input: set  
 GetAllSets                                                        & Output: AllSets                                                        & Return AllSets object                                                                                                                                               \\ \hline
 SetAllSets                                                        & Input: Allsets                                                         & \begin{tabular}[c]{@{}l@{}}Sets the AllSets attribute to the inputted \\ AllSets object\end{tabular}                                                                \\ \hline
 \end{tabular}
+}
 \end{table}
 \bigskip
 
@@ -324,7 +326,7 @@ A hashtable is a dictionary which takes a key, performs a hash function on the k
 
 Items are added to a hashtable as a list containing the key and the value. If two keys produce the same index location, then the hashtable can simply add the key-value pair to the next available location in the table. When it comes to finding an item, the hashtable goes to the index location calculated with the key and compares the key to the key at the location. If it is a match, then it can return the value. If not, then it knows to keep searching contiguous locations to eventually find what it is looking for. If it reaches an empty location, it knows the value was never added so the hashtable doesn't contain it. This is one way to handle collisions. However, this process can result in many computations to eventually find the value or to deem it not in the table. Thus, I implemented collision handling in a different way. \bigskip
 
-My solution instead adds items to a hashtable as a list containing a key, a value, and an empty list. The empty list contains the index locations of collided items. When adding an item, if the table already contains an item at the calculated index location, it runs the same process of finding the next available location. However, this time it gets the index value of the new location and adds it to the collided items list at the original index location. Thus, when it comes to finding an item, if the key at the location does not match, then the hashtable checks the locations for each index in the collided items list at this location. It compares its key to the key at each of these locations, and if it finds a match it has found the item it is looking for. If it finds no matches from any of these locations, then it knows the item does not exist in the table. This method of a collided items list pointing to locations of collided items requires less computations than the first method, especially so the more collisions that occur. \bigskip
+My solution instead adds items to a hashtable as a list containing a key, a value, and an empty list- [key, value, []]. The empty list contains the index locations of collided items. When adding an item, if the table already contains an item at the calculated index location, it runs the same process of finding the next available location. However, this time it gets the index value of the new location and adds it to the collided items list at the original index location. Thus, when it comes to finding an item, if the key at the location does not match, then the hashtable checks the locations for each index in the collided items list at this location. It compares its key to the key at each of these locations, and if it finds a match it has found the item it is looking for. If it finds no matches from any of these locations, then it knows the item does not exist in the table. This method of a collided items list pointing to locations of collided items requires less computations than the first method, especially so the more collisions that occur. \bigskip
 
 The hashtable has a fixed size, the value of which can affect the number of collisions that occur. Generally the less collisions the better, as it means retrieving a value requires less computations in searching for it. Another factor that affects the number of collisions is the hash function used, as different functions result in different indexes calculated and ideally the function should produce as little duplicate indexes from different keys as possible. For my hashtable I decided to use a table size of 179 and a hash function of \( (key*3)\) mod \(size\). Modding by size ensures that the calculated index is always in range of the table. I picked this size and function as they have resulted in the least amount of collisions, found through trial and error. \bigskip
 
@@ -344,7 +346,8 @@ NoOfItems                                                  & Integer & Total num
 
 A hashtable object is instantiated with Size taken as an argument. The contents is initialised as a list of None values, of size Size. Collisions and NoOfItems are both initialised as 0. \bigskip
 
-\begin{table}[h!]
+\begin{table}[H]
+\noindent\makebox[\textwidth]{
 \begin{tabular}{|l|l|l|}
 \hline
 Method        & Input/Output                                                                         & Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          \\ \hline
@@ -355,7 +358,168 @@ GetItem       & \begin{tabular}[c]{@{}l@{}}Input: index, key\\ Output: value or\
 GetCollisions & Output: collisions                                                                   & Returns the number of collisions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     \\ \hline
 GetNoOfItems  & Output: NoOfItems                                                                    & Returns the total number of items in the hashtable                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \\ \hline
 \end{tabular}
+}
 \end{table}
+\bigskip
+
+There exists an aggregation association between the two data structures. The main program stack contains two hashtable objects, but the hashtables may exist separately of the stack.\bigskip
+
+\begin{center}
+\includegraphics[width=10cm]{Images/aggregationhashtablestack.drawio.png}
+\end{center}
+
+\subsection{AllSets, Set, and Lego classes}
+
+All of the user's set data is stored in objects. An AllSets object stores all the user's Set objects, which have store information on the set as well as a list of Lego objects, where each Lego object stores information on their type and amount in the set. These objects are created at the start of the program using data stored in text files, and altered during the run of the program as the user makes changes to their sets. After every change to a set is made, the updated object is then used as a blueprint to update the text files so that the changes are saved. \bigskip
+
+\begin{center}
+\includegraphics[width=15cm]{Images/allsetsetlegocomposition.drawio.png}
+\end{center}
+\bigskip
+
+The three classes have a composition association, such that a Set object is part of an AllSets object, and a Lego object is part of a Set object, and neither can exist independently of the object that contains them. The class definitions for these classes are displayed below.\bigskip
+
+\textbf{AllSets class:}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}Object\\ variables\end{tabular} & Type & Description                             \\ \hline
+Sets                                                       & List & List containing the objects of all sets \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Method    & Input/Output     & Description                                                                                                \\ \hline
+GetSet    & Output: sets     & Returns the list containing all set objects                                                                \\ \hline
+AddSet    & Input: set       & Appends the set object to the list of all set objects                                                      \\ \hline
+RemoveSet & Input: set       & Removes the inputted set from the list of all set objects                                                  \\ \hline
+NoOfSets  & Output: NoOfSets & \begin{tabular}[c]{@{}l@{}}Returns the number of set objects in the list of all set\\ objects\end{tabular} \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+\textbf{Set class:}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}Object\\ variables\end{tabular} & Type    & Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              \\ \hline
+Name                                                       & String  & Name of the set                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          \\ \hline
+Set                                                        & List    & List containing all Lego objects that make up the set                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    \\ \hline
+Sort                                                       & Integer & \begin{tabular}[c]{@{}l@{}}A number which references how displayed set items\\ are sorted. There are 14 different sorts, so int is 0-13\\ \\ The following shows what numbers reference what sorts:\\ 0 - Date added: Oldest to newest\\ 1 - Date added: Newest to Oldest\\ 2 - Element Number: Low to High\\ 3 - Element Number: High to Low\\ 4 - Colour: A to Z\\ 5 - Colour: Z to A\\ 6 - LEGO Number: Low to High\\ 7 - LEGO Number: High to Low\\ 8 - Amount in set: Low to High\\ 9 - Amount in set: High to Low\\ 10 - Amount Required: Low to High\\ 11 - Amount Required: High to Low\\ 12 - Amount needed to complete: Low to High\\ 13 - Amount needed to complete: High to Low\end{tabular} \\ \hline
+HasRequired                                                & Integer & \begin{tabular}[c]{@{}l@{}}A number which references whether or not the set\\ has a required amount for its items. 0 = No, 1= Yes\end{tabular}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Method         & Input/Output                                                           & Description                                                                                                                                                                            \\ \hline
+GetName        & Output: name                                                           & Returns the name of the set                                                                                                                                                            \\ \hline
+SetName        & Input: name                                                            & Sets the name of the set to the inputted name                                                                                                                                          \\ \hline
+AddLego        & Input: Lego                                                            & \begin{tabular}[c]{@{}l@{}}Appends the Lego object to the set list containing\\ all Lego items of the set\end{tabular}                                                                 \\ \hline
+RemoveLego     & Input: Lego                                                            & \begin{tabular}[c]{@{}l@{}}Removes the Lego object from the set list \\ containing all Lego items of the set\end{tabular}                                                              \\ \hline
+GetSort        & Output: sort                                                           & Returns the Sort attribute of the set                                                                                                                                                  \\ \hline
+SetSort        & Input: sort                                                            & Sets the Sort of the set to the inputted sort                                                                                                                                          \\ \hline
+GetSet         & Output: set                                                            & \begin{tabular}[c]{@{}l@{}}Returns the set list containing all Lego items of \\ the set\end{tabular}                                                                                   \\ \hline
+GetHasRequired & Output: HasRequired                                                    & Returns the HasRequired attribute of the set                                                                                                                                           \\ \hline
+SetHasRequired & Input: HasRequired                                                     & \begin{tabular}[c]{@{}l@{}}Sets the HasRequired of the set to the inputted\\ HasRequired value\end{tabular}                                                                            \\ \hline
+GetSortedSet   & Output: SortedSet                                                      & \begin{tabular}[c]{@{}l@{}}Returns the set list containing all Lego items, \\ with the items sorted. The way they are sorted\\ depends on the value of the Sort attribute\end{tabular} \\ \hline
+GetSortName    & \begin{tabular}[c]{@{}l@{}}Input: sort\\ Output: SortName\end{tabular} & \begin{tabular}[c]{@{}l@{}}Returns the name of the sort based off of the\\ value of the inputted sort. eg. If 0 input, returns\\ "Date added: Oldest to Newest"\end{tabular}           \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+\textbf{Lego class:}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+\begin{tabular}[c]{@{}l@{}}Object\\ variables\end{tabular} & Type    & Description                                                                                                                                                                                                                                                                                      \\ \hline
+LegoNumber                                                 & String  & \begin{tabular}[c]{@{}l@{}}A string representing the LEGO number of the item. The integer\\ value of this LEGO number is used in a NumberHashtable, which\\ is passed in as an argument in the instantiation of a Lego object,\\ to get the colour and element of this LEGO number.\end{tabular} \\ \hline
+Colour                                                     & String  & \begin{tabular}[c]{@{}l@{}}The colour of the LEGO item, derived from the LEGO number \\ using a NumberHashtable\end{tabular}                                                                                                                                                                     \\ \hline
+Element                                                    & String  & \begin{tabular}[c]{@{}l@{}}The element of the LEGO item, derived from the LEGO number\\ using a NumberHashtable\end{tabular}                                                                                                                                                                     \\ \hline
+Amount                                                     & Integer & The amount of the LEGO item within the set that contains it                                                                                                                                                                                                                                      \\ \hline
+RequiredAmount                                             & Integer & \begin{tabular}[c]{@{}l@{}}The required amount of the LEGO item within the set that \\ contains it\end{tabular}                                                                                                                                                                                  \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Method                                                         & Input/Output                                                              & Description                                                                                                                                                                                                                               \\ \hline
+GetLegoNumber                                                  & Output: LegoNumber                                                        & Returns the LEGO number of the item                                                                                                                                                                                                       \\ \hline
+GetColour                                                      & Output: colour                                                            & Returns the colour of the item                                                                                                                                                                                                            \\ \hline
+GetElement                                                     & Output: element                                                           & Returns the element of the item                                                                                                                                                                                                           \\ \hline
+GetAmount                                                      & Output: amount                                                            & \begin{tabular}[c]{@{}l@{}}Returns the amount of the item in the set\\ that contains it\end{tabular}                                                                                                                                      \\ \hline
+SetAmount                                                      & Input: amount                                                             & \begin{tabular}[c]{@{}l@{}}Sets the amount of the item in the set that\\ contains it to the inputted amount\end{tabular}                                                                                                                  \\ \hline
+GetRequired                                                    & Output: RequiredAmount                                                    & \begin{tabular}[c]{@{}l@{}}Returns the amount required of an item\\ within the set that contains it\end{tabular}                                                                                                                          \\ \hline
+SetRequired                                                    & Input: RequiredAmount                                                     & \begin{tabular}[c]{@{}l@{}}Sets the amount required of an item within\\ the set that contains it to inputted amount\end{tabular}                                                                                                          \\ \hline
+\begin{tabular}[c]{@{}l@{}}GetNeededTo\\ Complete\end{tabular} & \begin{tabular}[c]{@{}l@{}}Output: AmountNeeded\\ ToComplete\end{tabular} & \begin{tabular}[c]{@{}l@{}}Calculates how many more of the item is\\ needed to reach the required amount.\\ Returns zero if amount is more than or \\ equal to required amount, otherwise\\ returns required amount - amount\end{tabular} \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+\subsection{Structure of text files}
+
+Text files are used in the main program to store data on LEGO items and on the user's sets. The program recognises 14 different LEGO colours and 10 different LEGO elements. That makes 140 combinations, however not all of the combinations exist as LEGO pieces. There are 121 official existing combinations from these colours and elements, so 121 LEGO numbers the program recognises. Of course, this only barely scratches the surface of the amount of LEGO pieces that exist, but 121 is enough given the scale of the project. \bigskip
+
+A text file named 'information.txt' stores all of the LEGO data. Every line in the file represents a single item. The first 10 lines of the file contain the 10 LEGO elements, and next 14 lines contains the LEGO colour. The next 140 lines contain the LEGO numbers of the combinations of the LEGO elements and colours. It begins with the LEGO number of the first stored element and first stored colour. After this is the LEGO number for the first element, second colour, and then after the first element third colour, etc. This is repeated for the second element, and then the third etc. At lines where there is no LEGO number for the combination of the LEGO element and colour, a '-' is written.
+
+Example of file structure:
+\begin{center}
+    \textit{
+    Elem1\\
+    Elem2\\
+    Elem3\\
+    ...\\
+    Elem10\\
+    Colour1\\
+    Colour2\\
+    Colour3\\
+    ...\\
+    Colour14\\
+    LegoNumOfElem1Colour1\\
+    LegoNumOfElem1Colour2\\
+    LegoNumOfElem1Colour3\\
+    ...\\
+    LegoNumOfElem1Colour14\\
+    LegoNumOfElem2Colour1\\
+    LegoNumOfElem2Colour2\\
+    LegoNumOfElem2Colour3\\
+    ...\\
+    LegoNumOfElem2Colour14\\
+    ...\\
+    LegoNumOfElem10Colour14\\
+    }
+\end{center}
+\bigskip
+
+A directory named 'userinfo' is used to store the text files that contain the user's set data. It contains a file named 'AllUserSets.txt' which is used to store the names of all of the user's sets, and also contains files for each set named after the name of the set e.g. 'MyFirstSet.txt' if the user has a set called MyFirstSet. \bigskip
+
+The AllUserSets file contains the name of every set, separated by commas. For example, if the user had sets named Set1, Set2 and Set3, the file would look like:
+\begin{center}
+    \textit{Set1,Set2,Set3,}
+\end{center}
+It must be noted that every set ends with a comma, even the last, so when splitting the contents of the file by "," to get the names of all the sets in a list, it will include an empty string at the end of the list. \bigskip
+
+A set text file contains all of the information relating to that set. This includes how the LEGO items it presents to the user is sorted, whether or not the LEGO items it contains has a 'required amount', and the LEGO items themselves. For each LEGO item, it holds information on the LEGO number of the item, the amount in the set, and the required amount of the item in the set,all seperated by commas. \bigskip
+
+It has a stored required amount even if the set doesn't have a required amount for it's pieces; this data is simply ignored when presenting LEGO information to the user. This is a purposeful feature, so that required amounts are not reset if the user toggles "has required amount" option off then on again, which may happen by accident. The file does not need to contain data on the LEGO item's colour or element, as these can be found using the LEGO number with the NumberHashtable. It also does not need to store the set name since the file is named after the set. \bigskip
+
+For an example set named 'Set1' that has the default sort option of "Date Added: Oldest to Newest", has a required amount for its pieces, has a LEGO item 300521 at 14 in the set and 21 required, and has an item 300121 at 10 in the set and 5 required, the text file 'Set1.txt' would exist in the 'userinfo' directory that looks like the following:
+
+\begin{center}
+    \textit{
+    0\\
+    1\\
+    300521,14,21\\
+    300121,10,5\\
+    }
+\end{center}
+\bigskip
+
 
 \subsection{The Convolutional Neural Network}
 
