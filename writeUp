@@ -274,7 +274,7 @@ This is all represented in the diagram below. The stack at the top represents a 
 \includegraphics[width=15cm]{Images/stack2.drawio.png}
 \end{center}
 
-Aside from having the functions of a stack data structure, the main program stack also has attributes which allows it to hold any data required by program states during their execution. This includes data on LEGO colours/elements, hashtables, and the AllSets object which allows access to every set and their constituent items. These attributes have getters and setters to retrieve and change them. The main program stack class is summarised in the class definition below. \bigskip
+Aside from having the functionality of a stack data structure, the main program stack also has attributes which allows it to hold any data required by program states during their execution. This includes data on LEGO colours/elements, hashtables, and the AllSets object which allows access to every set and their constituent items. These attributes have getters and setters to retrieve and change them. The main program stack class is summarised in the class definition below. \bigskip
 
 
 \begin{table}[h!]
@@ -508,7 +508,7 @@ A set text file contains all of the information relating to that set. This inclu
 
 It has a stored required amount even if the set doesn't have a required amount for it's pieces; this data is simply ignored when presenting LEGO information to the user. This is a purposeful feature, so that required amounts are not reset if the user toggles "has required amount" option off then on again, which may happen by accident. The file does not need to contain data on the LEGO item's colour or element, as these can be found using the LEGO number with the NumberHashtable. It also does not need to store the set name since the file is named after the set. \bigskip
 
-For an example set named 'Set1' that has the default sort option of "Date Added: Oldest to Newest", has a required amount for its pieces, has a LEGO item 300521 at 14 in the set and 21 required, and has an item 300121 at 10 in the set and 5 required, the text file 'Set1.txt' would exist in the 'userinfo' directory that looks like the following:
+For an example set named 'Set1' that has the default sort option of "Date Added: Oldest to Newest", does have a required amount for its pieces, has a LEGO item 300521 at 14 in the set and 21 required, and has an item 300121 at 10 in the set and 5 required, the text file 'Set1.txt' would exist in the 'userinfo' directory that looks like the following:
 
 \begin{center}
     \textit{
@@ -520,17 +520,472 @@ For an example set named 'Set1' that has the default sort option of "Date Added:
 \end{center}
 \bigskip
 
+\subsection{Retrieving data from text files}
 
-\subsection{The Convolutional Neural Network}
+To recap, when the main program is run it begins by retrieving LEGO data to store in two lists and two hashtables, which it stores in the main program stack object as the object's attributes. It then retrieves the set data by storing it as Set and Lego objects in an AllSets object, before storing the AllSets object in the main program stack as an attribute as well. I would like to clarify that the stored LEGO and set data is not stored on the stack itself, but as the main program's attributes. This is to allow the program states that \textit{are} held in the stack to access this data, which it needs so as to make use of the hashtables or alter set data.
 
-\paragraph*{The Layer class\\\\}
+\paragraph*{Retrieving LEGO data\\\\}
+
+\bigskip LEGO data is retrieved from the 'information.txt' text file by the subroutine retrieveLegoData. The subroutine begins by opening the file to read from it. It then initialises empty lists for the elements and the colours, as well as hashtable objects of size 179 for the ColourElemHashtable and for the NumberHashtable. It also creates two variables that represent the number of colours and number of elements, with values of 14 and 10 respectively. \bigskip
+
+It then runs a loop with the number of iterations as the number of elements, each iteration reading a line from the text file and stripping the last character off of it- the newline character '$\backslash$n'- to be left with an element number. It then stores this element number in the element list. \bigskip
+
+It repeats this process with another loop that iterates for the number of colours, to read the next 14 lines of the file. With each loop it also reads a line and strips it of the last character. It stores the colour into the colour list. \bigskip
+
+It then runs a nested loop: for every element in the element list, it runs a loop of every colour in the colour list, where it reads another line from the file and strips it of the newline character to get a LEGO number. Thanks to the structure of the text file, this LEGO number corresponds to the element and colour of the two loops, thus for every iteration in the nested loop we have an element, a colour, and the LEGO number of the item that has these two qualities. It uses these three things to create the hashtables, one to be able to look up a LEGO number from a colour and element combination, and another to be able to look up the colour and element from a LEGO number. If the LEGO number from the line it reads, however, is '-' then it knows that there is no LEGO for the colour and element combination, so it skips it. \bigskip
+
+Otherwise, it begins with the ColourElemHashtable. It gets the index of the colour from its position in the colour list, to essentially convert the colour into a number of a value between 0 and 13. It makes this into a string so that it can concatenate it to the end of the element number, which is also a string, and finally converts this whole item into an integer. This number is what is used as the key for the ColourElemHashtable. With the key, it produces an index using the hashtable's hashKey function, and finally adds the key and value to the hashtable using it's setItem method, that takes in the index, key, and value (the LEGO number in this case) as arguments to store the entry. An example: \bigskip
+
+\begin{center}
+    \textit{
+    Element = '2420', Colour = 'Orange', LEGO number = '6106027'\\
+    Orange is the first item of the Colour list, so ColourList.index(Colour) is equal to 0\\
+    Concatenating element and colour: '2420' + '0' = '24200'\\
+    key = 24200\\
+    index = 105 (since hashKey funtion is (key*3) mod size which is (24200*3) mod 179 = 105)\\
+    value = LEGO number = '6106027'\\
+    With this, an entry is added to the hashtable object using it's method setItem(index, key, item)\\
+    }
+\end{center}
+\bigskip
+
+The subroutine then goes on to create the NumberHashtable. For this hashtable the key is instead the integer value of the LEGO number. An index is calculated using the key by the hash function. The value for the hashtable entry is created by concatenating the element and colour together, both already strings, separated by a comma so as to be easily split again when the value is retrieved from the table. With the index, the key, and the value, it uses the hashtable's setItem method to add the entry into the NumberHashtable. \bigskip
+
+\begin{center}
+    \textit{
+    Element = '2420', Colour = 'Orange', LEGO number = '6106027'.\\
+    key = 6106027\\
+    index = 116 (since hashKey funtion is (key*3) mod size which is (6106027*3) mod 179 = 116)\\
+    value = Element + ',' + Colour = '2420,Orange'\\
+    With this, an entry is added to the hashtable object using it's method setItem(index, key, item)\\
+    }
+\end{center}
+\bigskip
+
+Finally, the subroutine returns the element list, the colour list, the ColourElemHashtable and the NumberHashtable. The main program calls the subroutine and uses all of these returned values to instantiate the main program stack object so that it has the LEGO data as it's attributes.
+
+\paragraph*{Retrieving user set data\\\\}
+
+Retrieving the user's set data is done by the subroutine retrieveSetData. The subroutine has a single parameter so as to take in the main program stack object as an argument. It does this so as to have access to the NumberHashtable which it uses to instantiate Lego objects, which requires it to find the element and colour of a LEGO item from the LEGO number. It also needs the main program stack to add the AllSets object to it at the end. \bigskip
+
+The subroutine begins by opening 'userinfo/AllUserSets.txt' to read from the AllUserSets text file. It gets the names of all sets by reading the first and only line of the file which contains all names separated by commas. The subroutine splits this by ',' to be left with a list allsetData. However, as previously mentioned, set names are added with a comma at the end, so even the last set name ends with a comma, resulting in an empty string being stored at the end of allsetData. This item is removed, and what remains is a list of all of the user's set names. An AllSets object is instantiated.\bigskip
+
+A loop is then run. For every name in the list of set names, a Set object is created. The object is instantiated with the name of the set. Since names are unique and every set has a text file which shares it's name, the subroutine uses the name of the set to open the text file of that set from the userinfo directory (\textit{e.g. for a set with the name MyFirstSet, the subroutine opens 'userinfo/MyFirstSet.txt'}). A setData list is created, and every line in the text file is stripped of the newline character and appended to the setData list. What remains is a list that holds all of the data from the text file, with every line of the file as an item in the list. \bigskip
+
+The first line of a set text file contains the sort, so the Set object sets its sort attribute to the first item of the setData list, converted from string to int. The second line of the file contains the hasRequired, so the Set object sets its hasRequired attribute to the int of the second item in the setData list. The rest of the setData list only contains the LEGO items that make up a set, so a loop is run for every item in the setData list after the second item. \bigskip
+
+For every LEGO item contained in the setData list, a legoData list is created, by stripping the LEGO item from the setData list by ','. As a reminder, items are stored as \textit{'LEGOnum,AmountInSet,AmountRequired'}, so the legoData list for every item looks like \textit{[LEGOnum, AmountInSet, AmountRequired]}. This legoData list is used to create Lego objects. \bigskip
+
+A Lego object is instantiated with the first item of the legoData list (the LEGO number of the item), and with the main program stack's NumberHashtable. The Lego object uses the two to find the colour and element of the item, so that the object has it's attributes of LEGO number, colour and element. The 'amount in set' attribute of the object is set as the int of the second item of legoData (the AmountInSet). The subroutine then checks if the Set object that is to contain the Lego object has a required amount for its pieces, using the Set object's getHasRequired method. If it does, then the Lego object sets it's required amount to the third item of the legoData list (the AmountRequired of the item). \bigskip
+
+Finally, the Lego object is added to the Set object of the set that contains it. This process of creating Lego objects, setting the attributes of the object and then adding the object to the Set object is repeated for every LEGO item in the setData list. When all LEGO items have been added, the Set object is added to the AllSets object, and the process of creating a Set object is repeated for the next set using the next name in allsetData. \bigskip
+
+Once all sets have been created and added to the AllSets object, the AllSets object is set as an attribute to the main program stack so as to give access to sets an the LEGO items contained in sets to the program states.
+
+\subsection{Program states}
+
+'Program states' represent the states of the program, the 'screens' that the user is presented with. It works together with the main program stack to provide an interface to the user, to access the LEGO identifying functionality of the program and to navigate and update the user's set information. \bigskip
+
+These states are implemented as subroutine calls. Every state takes the main program stack object as an argument, to allow it to add other states to the stack, to remove itself from the stack, or to access LEGO/user sets data, and this stack object is the only argument passed into any state. Thus, the object also has attributes for current set and current image, as these are set in some states but need to be accessed in others, so making them attributes of the main program stack allows this data to also be accessed by all states. \bigskip
+
+Encapsulating all this data in the main program stack makes it easier for data to be passed around and accessed than if data were passed around as local variables, and only allows the main program states access to the data which would not be the case if it were implemented as global variables. It also allows for a consistent implementation of the state subroutine calls such that every state requires only one argument, being the main program stack. \bigskip
+
+States are pushed onto the stack as their subroutine calls in the form of a string. When the main program stack is executing the top-most state on the stack as the current state, it simply evaluates the string, which calls the subroutine. During the execution of the subroutine, depending on the user's input, it will push another state onto the stack as a string subroutine call, which will be evaluated and executed by the main program's infinite loop after the current subroutine ends. \bigskip
+
+Use of the stack allows for previous states to be returned to, with the items on the stack representing the path taken to get to a state. Every state has the option to return to the previous state, and two different states may flow to the same state. Thus, to return to the previous state, the current state needs only pop itself from the stack, and the next state on the stack that is now being executed was the state that had transitioned to it. The user can effectively trace back the path taken to a state, by returning from one state to the state that had transitioned to it. \bigskip
+
+The following diagram shows the different states of the program, as well as how they transition to one another. It begins with the 'Home screen' state, the very first state the user is presented with which is pushed onto the main program stack at the start of the program. \bigskip
+
+\begin{figure}[H]
+  \makebox[\textwidth][c]{\includegraphics[width=18cm]{Images/progstates.drawio.png}}%
+\end{figure}
+\bigskip
+
+The arrows in the diagram represent state transitions. Bear in mind that every state can return to the state which transitioned to it, but only to that state, and not to another state which could have transitioned to it- hence why the arrows are not represented as being bi-directional. How a state decides what state to transition to depends on the user's input, the actions the user would like to perform. \bigskip
+
+I have implemented my solution as a text program, run in the terminal. Inputs are therefore taken by the user as characters typed in. Every state accepts 'q' as the input to return, and other characters are used to transition to different states. Every state presents the users with the options they have for what actions they can perform, as well as the expected input to carry out the options. It is important that bad inputs are handled, something the program tackles with selection statements and catch blocks where necessary. \bigskip
+
+For example, most state subroutines use a while True loop to get user input, limiting the user to only acceptable inputs. If the input matches the acceptable inputs, which represent options and are presented to the user, then the action of that input is carried out, and the infinite loop is broken out of. This generally ends the execution of the subroutine and allows for the main program stack to evaluate and execute the next subroutine call, which could be a previous state, a new state, or the same state, depending on the actions carried out. \bigskip
+
+The following paragraphs detail the functions of each of the program states, and how they link to other states. There will be a lot of mention of 'transitioning to another state' and 'returning to the previous state'; I would like to clarify that transitioning to another state involves pushing that state onto the main program stack, and returning to the previous state involves popping the current state off of the main program stack. I would also like for it to be noted that every state presents to the user with what they must input to perform what actions, and that for every option that requires a character to be input, both the lowercase and uppercase of the character is acceptable. Each paragraph includes the name of the state, a basic description of it and what it does, before presenting the acceptable inputs of options and what actions these options perform. \bigskip
+
+\paragraph*{Home screen\\\\}
+
+The Home screen is the very first state the user is presented with. It is the home screen of the program, and gives the user the following options. \bigskip
+
+'q' - Quit the program. This terminates the program, which is otherwise run indefinitely.\bigskip
+
+'1' - Lets the user view their sets. This transitions to the View All Sets state.\bigskip
+
+'2' - Go straight to scanning a LEGO piece, using the program's machine learning models.  This transitions to Upload Image Options state. \bigskip
+
+As mentioned in my proposed solution, storing user set data and identifying LEGO are two aspects of my solution, and are not completely intertwined nor completely independent. The scanning option can be used to add items to a set, but I also want for the option to be usable by someone who does not care for the inventory aspect and simply wishes to use the program for it's LEGO scanning capabilities. Hence, the home screen allows the user to view their sets while also giving them the option to go straight to using the neural network to scan a LEGO item. This is also useful if the user already knows what set(s) they wish to add scanned items to, so they won't have to navigate to a set and go through multiple different states first to begin scanning.
+
+\paragraph*{View All Sets\\\\}
+
+This state presents the user with all of their owned sets. Sets are presented by their name, and are numbered, starting from 1, so that accessing a set can be done simply by inputting the number before the set. This is done for efficiency, as typing out the name of a set to access it would be tedious.\\
+If the user does not own any sets, they are presented with the message 'It appears you do not have any sets so far. Consider creating one.', and only have the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+'n' - Allows the user to create a set. Transitions to Create Set state.\bigskip
 
 
-Neural networks are constructed from multiple layers, where data flows through each layer in forward or backward propagation. Implementing the AI for the program will involve creating these constituent layers, putting them together in a specific order to form a neural network, and finally training the neural network on data.\bigskip
+If the user \textit{does} own sets, then each set is listed and numbered, starting from 1. e.g. If the user owns a set called MyFirstSet, a set called AllMyLego, and a set called LegoCity then they are presented with
+\begin{center}
+    \textit{
+    1- MyFirstSet\\
+    2- AllMyLego\\
+    3- LegoCity\\
+    }
+\end{center}
+and must input a 1, 2, or 3 to go t MyFirstSet, AllMyLego, and LegoCity respectively.\\
+In the event that the user does have sets, they are given extra options: \bigskip
 
-As mentioned in the \textit{Proposed Solution} section, the fact that the CNN is formed of different layers- some loosely related- makes OOP a great programming paradigm to use in creating the neural network. The different layers may be implemented as different classes, all of which inherit from an abstract class \textit{Layer} which has virtual methods for propagating forwards and backwards. The different children classes can override these methods with their different implementations of propagating, so as to be specialised for their purpose within the neural network. The different types of layers to be implemented are displayed below. \bigskip
+\noindent
+'d' - Delete a set. Transitions to Delete Set state.\bigskip
 
-\begin{table}[h!]
+\textit{\textbf{number}} - Lets the user access the selected set. First, it gets the Set object of the selected set using the inputted number. The Set object is set as the current set attribute of the main program stack. State transitions to the View a Set state.
+
+\paragraph*{Delete Set\\\\}
+
+Deletes a set. Presents the user with the names of all of their sets. The set is deleted by inputting the name of the set. This takes the name rather than a number to ensure the user is selecting the correct set to delete, to essentially make it harder for the user to accidentally delete the wrong set. Even once they do input a set name, they must confirm their decision to delete the set. The user is given the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{set name}} - Delete the selected set. Gets the Set object of the set using the set name. Before deletion, presents the user with a y/n confirmation to delete the set. If 'n' is input, cancels deletion. Returns user to previous state. Otherwise, if 'y' input, then proceeds with deletion. Removes the set object from the AllSets object stored by the main program stack. Updates the AllSets text file to save this change using the updateAllsetsFile subroutine. Removes the text file of the deleted set from the userinfo directory. Finally, returns user to previous state.
+
+\paragraph*{Create Set\\\\}
+
+Creates a set, with a name inputted by the user. This name must be no longer than 1 character and unique, so that no sets already exist with this name. Gets a list of set names of all sets from AllSets object to verify input name is unique. User is given the following option: \bigskip
+
+\textit{\textbf{set name}} - Create a set. Name must be valid, checks if name is longer than 1 character and is unique. If it is, presents y/n confirmation of creation. If 'n' input, returns user to previous state. If 'y' input, then proceeds. Instantiates a Set object with the input name of the set. Adds object to the AllSets object. Updates the AllSets file to save change with updateAllsetsFile. Creates a text file for the set in the userinfo directory, with the file name the same as the set name. Writes a 0 to the first two lines of the file to save the default values of sort and hasRequired for the set. Finally, returns user to previous state.
+
+\paragraph*{View a Set\\\\}
+
+Allows the user to view a set that they have selected from the View a Set state. First, gets the 'current set' Set object from the main program stack, which represents the selected set. Uses this to get the sorted list of LEGO items using the set's getSortedSet method. User is presented with the set name of the set, the set sort (by the sort name, not sort number) and whether or not the set has a required amount for it's pieces. \bigskip
+
+If the user has no items in the set, the user is presented with the message 'You do not appear to have any LEGOs in this set. Consider adding some.'. Otherwise, for each Lego object in the sorted set, the user is presented with the object's LEGO number, element, colour, and amount in set. If the set has a required amount for pieces, then also presents the required amount of the Lego object and the 'amount needed to complete'. The user is given the following options. \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+'n' - Change the name of the set. Transitions to Change Set Name state.\bigskip
+
+'s' - Change the sort of the set, the order in which Lego items are displayed. Transitions to Change Set Sort state.\bigskip
+
+'r' - Toggle the hasRequired attribute of the set. Sets the hasRequired attribute of the set to 0 if it is 1 or 1 if it is 0. Updates the set file with the subroutine updateSetFile to save this change, passing in the current set object as the argument.\bigskip
+
+'e' - Edit the Lego items in the set. Transitions to Edit Set items state.\bigskip
+
+'a' - Add a LEGO item to the set. Transitions to the Add by Options state.
+
+\paragraph*{Change Set Name\\\\}
+
+This state allows the user to change the name of the current set. First, gets the current set object. Again, the set's name must be longer than 1 character in length and unique. Gets a list of names for all sets, using AllSets object, which is used to verify input name is unique. User is given following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{valid set name}} - Change the name of the set. Once a valid set name is entered, user is presented with a y/n confirmation to change the name to this. If 'n' input, returns user to previous state. If 'y', then proceeds with change. Program gets current name of Set object, which it uses to delete the text file of the current set from the userinfo directory. Changes the name of the current set object to the new name, and updates the set file of this object using the updateSetFile subroutine, passing in the current set object as an argument. This will create a new text file for the object with it's new name, since opening a text file to write to that doesn't exist creates the file in python. Next, the AllSets file is updated with the updateAllsetsFile subroutine, to save the new name. Finally, the user is returned to the previous state.
+
+\paragraph*{Change Set Sort\\\\}
+
+Changes the sort of the current set, the order in which presented LEGO items are displayed. Gets current set object. Presents every sort option, by having a list of numbers 0 to 13 and the corresponding sort name for these numbers next to them using the current set object's getSortName method. User has the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{valid number (0-13)}} - Change the sort to the selected number. First, changes the current set's sort attribute to the new number. The set is then updated using subroutine updateSetFile, passing in the current set as an argument. Finally, the user is returned to the previous state.
+
+\paragraph*{Edit Set items\\\\}
+
+Edits the Lego items of the current set. First gets the current set object and the object's sorted set list. If the set has no LEGO items, then a message is presented that they have no items to edit, before returning the user to the previous state. \bigskip
+
+Otherwise, presents LEGO items to the user in the same way as it does in the View a Set state- sorted, with all it's attributes displayed. The user is prompted to enter the LEGO number of an item they would like to edit, and only numbers that match the LEGO numbers of items in the set can be input. User is kept in this state until they quit it, so that they can keep editing the set after making a change to an item. User is given the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{valid LEGO number}} - Selects the LEGO item that the user wishes to edit by it's inputted number. User is presented with further options on what actions they would like to perform on this item. First subroutine gets the Lego object of this item from the LEGO number. Presents the attributes of this selected LEGO item. Gives the user options of what to do with the selected item. If set doesn't have required amount, only present following options:\\
+    'q' - Go back. Returns user to previous state.\\
+    '1' - Delete the selected Lego item from the set. Removes the Lego object from the current set object. Updates current set using updateSetFile subroutine, passing current set object in as argument. User is returned to the same state so that they may keep editing the set.\\
+    '2' - Edit the amount of the selected item in the set. Runs getAmountAsInput subroutine to get the amount from the user. Sets the Lego object's amount attribute to this new amount, updates the current set with the updateSetFile subroutine, and returns user to the same state.
+    
+    If the set does have a required amount, then the user is given the extra option: \\
+    '3' - Edit required amount of the selected item in the set. Runs getAmountAsInput function to get the amount from the user. Sets the Lego object's required amount attribute to this new amount, updates the current set with the updateSetFile subroutine, and returns the user to the same state.
+
+\paragraph*{Add by Options\\\\}
+
+Asks whether the user would like to enter a new LEGO item to the set by scanning the LEGO item, using the program's machine learning model, or whether they would prefer to add the item manually using the LEGO number of the item. The user is presented with the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+'1' - Add an item by scanning LEGO. Transitions to Upload Image Options state.\bigskip
+
+'2' - Add an item by inputting LEGO number. Transitions to Add by LEGO Number state.
+
+\paragraph*{Add by LEGO Number\\\\}
+
+State allows user to enter an item to the current set by it's LEGO number. First, gets the current set and a list of the LEGO numbers for all items in the current set. Gets input of a valid LEGO number of the item to add from the user. If the inputted LEGO number exists in the list of LEGO numbers of items in the set, then the item already exists in the set, so cannot add this item.\bigskip
+
+If the item is not in the set already, then uses the LEGO number to look up the colour and element of the item using the NumberHashtable from the main program stack. The LEGO number is converted to an integer to be used as the key for the hashtable, which is used with the hash function of the hashtable to get an index value. If the inputted LEGO number contains non-numerical characters, a catch block catches the error of converting the input to an integer, and the user is prompted to enter a number for their input. The hashtable's getItem method is used with the key and index to get the value, the colour and element of the LEGO item. If the returned value is False, then the item does not exist in the hashtable, meaning that the LEGO number is not recognised by the program. Otherwise, the input value is valid. User is given the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{valid LEGO number}} - Add LEGO item to the current set by LEGO number. Aforementioned process is used to get a valid LEGO number. Once this number is received, the is prompted to input the amount of the item to add to the set. Amount is gotten using getAmountAsinput subroutine. If the set has a required amount for it's items, a required amount is also gotten from the user using the same subroutine. All of the information of the LEGO item that is to be added to the set is presented to the user, with a y/n confirmation of adding the item. If 'n' input, user is returned to previous state. Otherwise, if 'y' input, proceeds with adding the item to the set. The subroutine addItemToSet is called, which takes in the main program stack, LEGO number, current set, amount, and the required amount as arguments. If no required amount was taken from the user, then a 0 is passed in it's place. User is returned to the previous state.
+
+\paragraph*{Upload Image Options\\\\}
+
+Gets the method by which the user uploads an image to scan. This can be done either by using a camera, using their phone/other device, or by uploading the file of the image. The user is presented with the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+'1' - Upload by image file. Transitions to Upload Image File state.\bigskip
+
+'2' - Upload by use of camera. Transitions to Use Camera Options state.
+
+\paragraph*{Upload Image File\\\\}
+
+Allows user to upload an image file to be scanned. Prompts user to input the full path of an image file. Attempts to open it using PIL using a catch block if it cannot. The image from the file is used to be scanned. User is given the following options in this state: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{valid file path}} - Scan the image from the inputted file. The current image attribute of the main program stack is set to the image from the file opened with PIL. State transitions to the Validation + add to set state.
+
+\paragraph*{Use Camera Option\\\\}
+
+State gives the user options to help, set up and use their device camera to scan. Scanning using the phone requires an IP camera app to be installed on the device, such as IP Webcam. The device can stream through this application, and using the IPv4 provided by the app, the PC can connect to the stream- given that both devices are connected to the internet. Thus, using the app to stream and using the OpenCV library in my program code, it is possible to get the phone to stream data to the PC, which can effectively be used to get the image to scan LEGO. The only requirement is that the program needs the IPv4 of the streaming device to connect to it. Thus, the user is made to set their IPv4 with details on how to do so, and this is stored on the PC so that it only needs to be set once, though the user has the option to change it as they wish, if they wish to stream from a different device or for some other reason. \bigskip
+
+A text file called 'IPv4.txt' is stored in the userinfo directory, and this contains the user's IPv4. The IPv4 is read from the file. The user is presented their IPv4, or 'None' if they have not yet input an IPv4. The user is prompted to set up their camera before attempting to use the feature, and that they have a correct IPv4 input in the program. The user is then presented with the following options:\bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+'1' - Get help with how to set up and use the camera to scan LEGO. Transitions to Help Using Camera state.\bigskip
+
+'2' - Set or update the stored IPv4. Transitions to Update IPv4 state.\bigskip
+
+'3' - Begin scanning with the camera. If the user has not input an IPv4 yet, then they are prompted to first do so. Otherwise, transitions to Use Camera state.
+
+\paragraph*{Help Using Camera\\\\}
+
+This state simply provides the user with information on how to set up and use their camera. This includes information on downloading an IP camera app, how to get their IPv4, how to begin streaming, inputting IPv4 into program, how to use the phone camera to get an image in the program, how to get the best results out of the images they capture with their phone, etc. The user is presented with the following option: \bigskip
+
+\textit{\textbf{any input}} - Go back. Returns the user to the previous state
+
+\paragraph*{Update IPv4\\\\}
+
+Updates the user's IPv4 which is stored in the program. Reads current IPv4 from IPv4.txt text file in userinfo directory. Displays the user's current IPv4, or 'None' if the file is empty. Prompts user to enter their new IPv4. User is presented with the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{new IPv4}} - Updates the stored IPv4 to the new value. Opens the IPv4 text file, overwrites the contents of the file to the new IPv4. Finally, returns the user to the previous state.
+
+\paragraph*{Use Camera\\\\}
+
+Uses the phone camera to get an image of a LEGO piece. Begins by retrieving the user's IPv4 from the text file. Must be in form 'https://\textit{IPv4}/video'. If the retrieved IPv4 does not begin with 'https://', then this gets concatenated to the front. Similarly, if it does not end with '/video', this gets added on to the end. \bigskip
+
+The user is then prompted to ensure their app is open and streaming, and is given basic information to help them use the camera. When the user is to proceed, a window will open on their PC showing what the phone camera sees. If they do not see this window, then it has opened in the background. The user must ensure that the window is open and focused on. Then, they must angle their camera to a good angle to capture the best image of their LEGO, and when they are ready to capture the image they must press the space bar on the keyboard. Otherwise, pressing the letter 'q' on the keyboard terminated the scan. The user is presented with the following options: \bigskip
+
+'q' - Go back. Returns user to previous state.\bigskip
+
+\textit{\textbf{any input}} - Proceed with using camera. Program connects to phone and captures it's stream. If 'q' is pressed during connection, connection is broken. User is returned to the same state. If the spacebar is pressed, then a temporary image is taken from the phone's camera. This image is converted to a PIL image, and is set as the current image on the main program stack. State transitions to Validation + add to set state.
+
+\paragraph*{Validation + add to set\\\\}
+
+This state scans the current image using the program's neural networks to identify the LEGO item. It asks the user to validate if the scan is correct, and if so, then gives the user the option to add the item to a set. Begins by getting the current image, as well as the colour list, element list, and ColourElemHashtable from the main program stack. Gets the LEGO number, colour, and element of the LEGO from the image by passing the image, colour list, elem list and ColourElemHashtable into the function getInformation. This function is what uses the neural networks to identify the colour and element from the image, and uses the identified colour and element with the ColourElemHashtable to get the LEGO number.\bigskip
+
+If the LEGO number is False, then the identified element and colour combination does not exist, meaning that one of them was identified incorrectly. In this case, the program apologises and prompts the user to use a better image. Otherwise, the colour, element, and LEGO number are presented to the user, and the user is asked if this information is correct, y/n. If 'n' input, again apologises and prompts for better image. \bigskip
+
+If 'y' input, user given option to add the item to a set, again y/n. If 'n' input, user returned to previous state. If 'y' input, prepares to add item to a set. Gets the AllSets object from the main program stack, and presents to the user the names of all their sets. Asks the user to input the name of the set they would like to add the item to. If 'q' input, returns user to previous state. Otherwise, if input is in list of names of all sets, then input is a valid set name, so proceeds. \bigskip
+
+The Set object with this name is retrieved from the AllSets object, and the LEGO numbers of every LEGO item in the set is stored in a list. If the LEGO number of the item to be added exists in this list, then the set already has the identified item, so the item cannot be added to this set. User is returned to the set selection so they may choose a different set to add their item to. If the LEGO number does not exist in this list already, however, then it can be added to this set, so proceeds. \bigskip
+
+The getAmountAsInput subroutine is run to get the amount of this item to be added to the set. If the selected set has a required amount for it's items, then this required amount is also gotten from the user with the getAmountAsInput subroutine. Finally, the information of the item to be added to the set is presented to the user, along with a message stating that it has been added. The subroutine addItemToSet is called, passing in the main program stack, LEGO number, selected set, amount, and required amount. If no required amount was acquired from the user, a 0 in passed in its stead. The user is returned to the set selection so that they may add the same identified LEGO item to another set if they wish. \bigskip
+
+The following flowchart attempts to explain the decision making more clearly. \bigskip
+
+\begin{center}
+\includegraphics[width=12cm]{Images/AddToSetFlowchart.drawio.png}
+\end{center}
+
+\subsection{Subroutines}
+
+This section details the subroutines used in the main program. Note that this does not contain the functions used by the neural network. A couple of the functions in this section do utilise neural networks, but for now how the neural network functions will be abstracted away. The neural network will be represented as a black-box function that simply takes in an input and returns an output. The neural network, and the functions that it is built upon will be covered in a later section. \bigskip
+
+The subroutines can be split into procedures and functions. The procedures used in the main program are used for updating and retrieving data stored in text files. The functions used in the main program are used for the purpose of identifying a LEGO item. The following tables provide an overview of the different subroutines as well as a brief description of their purpose. \bigskip
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Procedure         & Input                                                                                                             & Purpose                                                                                                                                                                                                                 \\ \hline
+retrieveLegoData  & none                                                                                                              & \begin{tabular}[c]{@{}l@{}}Retrieves LEGO data from text files, which\\ includes an element list, a colour list, a \\ ColourElemHashtable and ElemHashtable\end{tabular}                                                \\ \hline
+retrieveSetData   & Main program stack                                                                                                & \begin{tabular}[c]{@{}l@{}}Retrieves stored data from text files on user\\ sets. Stores this data in Lego and Set objects\\ which are stored in an AllSets object that is\\ held in the main program stack\end{tabular} \\ \hline
+updateAllsetsFile & AllSets object                                                                                                    & Updates the Allsets text file                                                                                                                                                                                           \\ \hline
+updateSetFile     & Set object                                                                                                        & Updates the text file of the Set object                                                                                                                                                                                 \\ \hline
+addItemToSet      & \begin{tabular}[c]{@{}l@{}}Main program stack, \\ LEGO number, Set object,\\ amount, required amount\end{tabular} & \begin{tabular}[c]{@{}l@{}}Creates a Lego object which gets added to a\\ Set object. Then runs updateSetFile to save \\ this change to the set's text file\end{tabular}                                                 \\ \hline
+getAmountAsInput  & none                                                                                                              & \begin{tabular}[c]{@{}l@{}}Used to get a valid amount input from the\\ user\end{tabular}                                                                                                                                \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Function       & Input/Output                                                                                                                                       & Purpose                                                                                                                                                               \\ \hline
+getInformation & \begin{tabular}[c]{@{}l@{}}Input: Image, element list,\\ colour list, \\ ColourElemHashtable\\ Output: element, colour,\\ LEGO number\end{tabular} & \begin{tabular}[c]{@{}l@{}}Returns all the information of a LEGO item\\ from an image. Does so by using the\\ getColour, getElem and getNumber functions\end{tabular} \\ \hline
+getMaxIndex    & \begin{tabular}[c]{@{}l@{}}Input: list\\ Output: index\end{tabular}                                                                                & Returns the index of the largest number in a list.                                                                                                                      \\ \hline
+getRGB         & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: rgb\end{tabular}                                                                                 & \begin{tabular}[c]{@{}l@{}}Returns an RGB value for a LEGO item from\\ an image\end{tabular}                                                                          \\ \hline
+getColour      & \begin{tabular}[c]{@{}l@{}}Input: image, colour list\\ Output: colour\end{tabular}                                                                 & \begin{tabular}[c]{@{}l@{}}Returns the colour of a LEGO item from an\\ image, using getRGB and getMaxIndex and a\\ colour neural network\end{tabular}                 \\ \hline
+getElem        & \begin{tabular}[c]{@{}l@{}}Input: image, element list\\ Output: element\end{tabular}                                                               & \begin{tabular}[c]{@{}l@{}}Returns the element of a LEGO item from an\\ image, using getMaxIndex and an element\\ neural network\end{tabular}                         \\ \hline
+getNumber      & \begin{tabular}[c]{@{}l@{}}Input: element, colour,\\ colour list, \\ ColourElemHashtable\\ Output: LEGO number\end{tabular}                        & \begin{tabular}[c]{@{}l@{}}Returns the LEGO number of a LEGO item\\ from it's colour and element, by using a \\ ColourElemHashtable\end{tabular}                      \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+The following paragraphs detail how each subroutine works. The procedures retrieveLegoData and retrieveSetData have already been explained in detail in the \textit{Retrieving data from text files} section, so these will be omitted.
+
+\paragraph*{updateAllsetsFile\\\\}
+
+This procedure updates the Allsets text file. It does so by overwriting the file to store the necessary information of the changed Allsets object. Thus, it takes in the Allsets object as input. \bigskip
+
+The Allsets text file is opened, and a list of all sets is gotten from the AllSets object using it's getSet method. For every set in this list, the name of the set is written to the file, followed by a comma, in the fashion of how the Allsets text file is structured. 
+
+\paragraph*{updateSetFile\\\\}
+
+This procedure updates the text file of a Set object. It does so by overwriting the file of the object to store the necessary information of the Set object, which has had changes made to it. Thus, it takes in the Set object as input. \bigskip
+
+The name of the Set object is gotten, which is used to open the text file of that set. The sort attribute of the set is gotten and written to the first line. The hasRequired attribute of the set is gotten and written to the second line. The list of all Lego objects in the set is gotten using the set's getSet method. For each Lego object, the LEGO number, amount, and required amount of the object are written to a line in the file, separated by a comma. This is all written in line with the structure of the set text file.
+
+\paragraph*{addItemToSet\\\\}
+
+This procedure creates a Lego object and adds it to a set. It takes in a LEGO number, amount, and required amount to make the Lego object, and a Set object for the set to add the Lego to. It also takes in the main program stack. \bigskip
+
+It gets the ColourElemHashtable from the main program stack, and uses this and the LEGO number to instantiate a Lego object. It then sets the attributes of the object to the amount and required amount, adds the object to the Set object, and then updates the set's text file with the updateSetFile procedure.
+
+\paragraph*{getAmountAsInput\\\\}
+
+This procedure is used to get a valid amount input from the user. Getting an amount from the user is something which happens a lot in the program, hence why a dedicated subroutine exists for this operation. An infinite loop is run, asking the user for an amount to be input. A catch block evaluates whether the int of the input is larger than or equal to 0. If the input is not numerical characters, converting to an integer results in an error which is caught by the block and prompts the user to input a number. If the number is not >= 0, then the user is prompted to enter a positive number. Otherwise, the input is valid and the amount is returned.
+
+\paragraph*{getInformation\\\\}
+
+This function returns all of the information of a LEGO item from an image of the item, done by using the other functions for getting the colour, element, and LEGO number. It essentially combines them within a single function to provide a single interface for identifying a LEGO item from an image. It therefore takes in the inputs that the three functions require to pass them in -Image, element list, colour list and the ColourElemHashtable- and returns the returned values from the three functions, being the colour, element and LEGO number.
+
+\paragraph*{getMaxIndex\\\\}
+
+This function is used to get the index of the largest number in a list. For example, for the list 
+
+\begin{center}
+    \textit{
+    [0, 4, 3, 74, 0.6, 4, 1]
+    }
+\end{center}
+
+the function would return the value 3, since index 3 of the list contains the largest number in the list, 74.\bigskip
+
+This function is necessary as the neural network outputs a probability distribution, a list of numbers where each item in the list represents a class (something the input can be classified as being e.g. Orange if the neural network's task is to identify colour), and the value of the item represents the probability of that item being the correct guess. The getMaxIndex function is used to get the index of the class with the highest probability of being correct, to essentially get the neural network's guess for what the object is.
+
+\paragraph*{getRGB\\\\}
+
+This function is used to return an RGB value to represent the colour of the LEGO item from an image. The RGB value is needed to identify the colour of the object, so that it may be input into a neural network trained to identify LEGO colour by RGB values. The reason a neural network is needed for this task is because although the LEGO colours themselves have discrete RGB values, an image of the LEGO does not. It is affected by things such as lighting and shadows, and so contains a range of RGB values, a majority of which may deviate from the LEGO colour's RGB value significantly. Thus, using a dataset I found online of RGB values of LEGOs from images, I trained a neural network to be able to classify LEGO colours using an RGB value of an object from an image. \bigskip
+
+I designed the function to achieve the task of getting an RGB value to represent the item by separating out the image's pixels of the object from the background, using the fact that they are different colours, and then finding the average of every RGB value of the object's pixels to get a single RGB value to represent the object. The function takes in an image as input, and returns the deduced RGB value. \bigskip
+
+All image handling in my project is done using the Pillow library (PIL). I have also designed a class 'Augment' of functions, built on PIL functions, for the purpose of augmenting images in my program. This class of functions is covered in more detail in a later section. One such of these functions is the \textit{aspect} function, which crops an image to be of 1:1 aspect ratio. \bigskip
+
+The getRGB function uses this aspect function to turn the image that it takes in as an argument to be of 1:1 aspect ratio. It then resizes the now square image to a new size, of 32 by 32, using the PIL thumbnail function. A separate grey-scale version of this resized image is created with the PIL ImageEnhance, and both of these images are turned into lists of pixel values with the PIL image's getdata function. \bigskip
+
+Different colours result in a different shade in grey-scale, and grey-scale pixels have RGB values of equal red, green and blue e.g. 138,138,138, so may be considered by a single value, 138. Thus, using a grey-scale version of the image makes it easy to differentiate between the object and background, which are likely to have a significant difference in the RGB value of the grey-scaled image. A value can be found for the background e.g. 240, and for every pixel in the grey-scale image, if the value of the pixel is in a range of about 50 of the background value, then it can be considered part of the background. Otherwise, it is likely to be a different colour, thus can be considered part of the image, and the position of these pixels can be used with the coloured image to get the pixels of the object in the coloured image. \bigskip
+
+The first step is to identify the background colour of the image. This can be achieved by taking the RGB values of the corner pixels of the image, as the object is most likely to be in the center of an image. It is possible that the object touches a corner, but very unlikely to touch more than one. If it does, the object may not even be recognisable in the image to identify it so it is a bad image anyways. The function thus determines the background colour by getting the majority of the corner pixels. \bigskip
+
+The grey scale image list of pixel values is changed so that every pixel in it is represented by a single number and not a tuple for the RGB value, since the red, green and blue are all of the same value anyways. The corner pixels can be found in index positions 0, size-1, size*(size-1) and (size*size)-1 in the list of pixel values. The corner pixels from the grey scaled image are put in a list together, and the maximum value is found. \bigskip
+
+For every number in the corner pixels list, if the number is not within a range of 50 of this max value then the numbers represent different colours and a count is incremented by 1. If by the end the count is 0, then all pixels are of the same colour. If it is 1, then a single different colour was found implying the object touches a corner in the image. The max value still represents the majority colour, so it is assumed the background colour. If the count is 2, then the object likely touches two corners in the image, and in this scenario the max value is randomly assumed to be the background colour. If the count is 3, it is less likely that the object touches three corners and more likely that the max value is the pixel colour of the object and the other 3 corner pixels represent the background, so this is what is assumed. A boolean maxIsBG is created and is assigned True if the maximum value of the corner pixels is assumed to be the background colour, and False if it is assumed to not be the background colour, that the max value pixel is that of the object. \bigskip
+
+Now that we have identified the grey-scale value of the background, we can begin to separate out the object pixels. An empty list is created to hold all of the object's pixels. For an index in range 0 to the length of the image list -1, The pixel value at this index in the grey-scale list is compared to the max value pixel of the corner pixels from earlier. If the pixel value is within a range of 50 of the max value, then they are the same colour. If maxIsBG is True, this means the pixel is of the background. If maxIsBG is False, then it is instead of the object. On the other hand, if the pixel value is not within 50 of the max value pixel, then they are different colours. Therefore if maxIsBG is True then this pixel is of the object, and if maxIsBG is False then this pixel is of the background. In the event that the grey-scale pixel is identified as being of the object, then the pixel in the same position (same index) in the colour list is found, and added to the object pixels list. \bigskip
+
+This leaves us with a list of all the RGB values of pixels that make up the object from the image. Every RGB value in the list is summed together, divided by the number of RGB values, and rounded to the nearest integer to effectively find the average RGB value for every RGB value in the list. This average RGB value of the object is what is returned to the user. \bigskip
+
+The following example intends to make this process clear using an image at a much smaller scale.
+
+\begin{center}
+\includegraphics[width=5cm]{Images/getrgbexample.drawio.png}
+\end{center}
+
+An 5x3 image containing a blue pixel is input into the function. It changes the ratio to 1x1 by cropping it, and resizes it. In this case we will take the new size to be 3x3, which it already is, so nothing happens. We get the list of the coloured image, and the list of single values for the grey scale image: 
+\begin{center}
+    \textit{
+    Colour list: [(255, 255, 255), (255, 255, 255), ..., (30, 160, 220), (51, 153, 255), (255, 255, 255)]\\
+    Grey scale list: [255, 255, ..., 255, 128, 134]
+    }
+\end{center}
+The corner pixels of the grey scale image is found from the grey scale list at indexes 0, 3-1 = 2, 3*(3-1) = 6 and (3*3)-1 = 8. The values are added to a new list
+
+\begin{center}
+    \textit{
+    Corner pixel list: [255, 255, 255, 134]
+    }
+\end{center}
+The max of the list is 255. The first three items are within 50 of this max value, but the last item is not (255 - 134 = 121, 121 > 50) so the count is 1. This implies that since the max value has majority, it represents the background colour. Thus maxIsBG = True.
+
+For every item in the grey scale list, indexes 4, 5, 7 and 8 contain values which are not within 50 of the max value, 255. Therefore, since maxIsBG is True, they are not of the background and instead represent pixels of the object. The items in the colour list at these indexes are added to an object pixels list. 
+
+\begin{center}
+    \textit{
+    Object pixels list: [(50, 150, 255), (52, 149, 240), (30, 160, 220), (51, 153, 255)]
+    }
+\end{center}
+The average RGB value from this list is calculated: 
+\begin{center}
+    \textit{
+    sum = [(50+52+30+51), (150+149+160+153), (255+240+220+255)] = [183, 612, 970]\\
+    Average = sum/total = [(183/4), (612/4), (970/4)] = [47.75, 153.0, 242.5]\\
+    RGB = average rounded = [48, 153, 243]\\
+    }
+\end{center}
+So the RGB value deduced from the object is (48, 153, 243). This tuple is returned to the user.
+
+\paragraph*{getColour\\\\}
+
+This function is used to return the colour of a LEGO item from an image of the item. It takes in the image as an input, as well as the colour list. \bigskip
+
+It begins by passing the image into the function getRGB to get an RGB value of the item in the image. It then normalises this value so that every item is less than 1, done by dividing the numbers in the RGB value by 255, and reshapes it to a 3x1 matrix. The function uploads the saved Colour Neural Network, the neural network trained to identify colour. The normalised RGB matrix is input into the neural network, and the output is a 14x1 matrix of the probabilities of the RGB value being from the 14 different colours. This matrix is turned into a list of 14 items, and is passed into the getMaxIndex function to find the index of the most probable colour. \bigskip
+
+Since the output of the neural network corresponds to the colour list, with it's guesses in the same order as the colours, the index of the prediction can be used with the colour list to find the predicted colour. This colour is returned.
+
+\paragraph*{getElem\\\\}
+
+This function is used to return the element of a LEGO item from an image of the item. It takes in the image as an input, as well as the element list. \bigskip
+
+It begins by processing the image before it passes it into the neural network. Using the PIL library, the image is grey scaled, and turned into a list of RGB pixel values. The image must be of a dark background, since the neural network was trained on images with dark backgrounds, and I found I got a higher accuracy of predictions if I change the input to fit the neural network rather than train the neural network to work with light background. \bigskip
+
+The background pixel of the image is taken using the very first pixel of the image, the top left corner pixel. If the value is larger than 128, the background is more bright than dark so it is inverted with PIL. If it is larger than 128 and also less than 205, the image is also made darker using PIL to decrease brightness. If the background pixel value is less than 128, and larger than 50, it too is bright so the image is decreased in brightness. What remains is an image with a dark background. \bigskip
+
+Next, the image uses the aspect function from my Augment class of functions to make the image of aspect ratio 1:1. It is resized with PIL thumbnail function to make it 64x64, and the data from the processed image is made into a list. It is normalised so that values are less than 1, by dividing values by 255, and then the list is resized into a 32x32 matrix. The saved Element Neural Network is retrieved, and the image matrix is passed into it. The output is a 10x1 matrix of the probabilities of the image being different elements. \bigskip
+
+The output matrix is turned into a list of 10 items, is passed into the getMaxIndex function to get the index of the most probable element, and then the index is used with the element list to get the element number of the prediction of the neural network, since the neural network's probabilities output is in the same order as the element list. The element number is returned.
+
+\paragraph*{getNumber\\\\}
+
+This function is used to get the LEGO number of an item, from it's colour and element. It takes a colour and element as input, as well as the colour list and ColourElemHashtable. \bigskip
+
+The index position of the colour in the colour list is found, to get a number that represents the colour. This is concatenated to the end of the element number, which too is a string, and this new, longer number is turned into an integer. This is the key. \bigskip
+
+The key is used with the hash function of the hashtable to get an index, and the key and index are both used with the getItem method of the hashtable to find the value, which is the LEGO number. The LEGO number is returned.
+
+\subsection{The Neural Network}
+
+\paragraph*{Neural network overview\\\\}
+
+
+My solution features the use of machine-learning models for the purpose of identifying a LEGO item from an image, done so by employing two separate neural networks dedicated to the tasks of identifying LEGO element and colour, and then using these pieces of information to find the LEGO number of the item in the image. \bigskip
+
+A neural network is constructed from multiple layers, where data flows through each layer one by one in forward or backward propagation. Implementing the LEGO scanning aspect of my solution will involve implementing these constituent layers, assembling them in a specific order to form the neural network, and finally training the neural network on labelled data so that it may learn.\bigskip
+
+To create the neural network, the different layers will be implemented as classes, all of which inherit from a base Layer class. A NeuralNetwork class will allow for the instantiation of a NeuralNetwork object, which holds layer objects and performs actions on them. I will also be creating a class Matrix Manipulation, 'mm' for short. This class contains all of the functions utilised by the neural network and its layers. \bigskip
+
+\paragraph*{Base Layer Class\\\\}
+
+As mentioned in the \textit{Proposed Solution} section, the fact that the CNN is formed of different layers- some loosely related- makes OOP a great programming paradigm to use in creating the neural network. The different layers may be implemented as different classes, all of which inherit from an abstract class \textit{Layer} that has virtual methods for propagating forwards and backwards. The different children classes can override these methods with their different implementations of propagating, so as to be specialised for their purpose within the neural network. The different types of layers to be implemented are displayed below. \bigskip
+
+\begin{table}[H]
 \centering
 \begin{tabular}{|l|l|}
 \hline
@@ -543,65 +998,130 @@ Softmax &
   \begin{tabular}[c]{@{}l@{}}Transforms the raw output of neural network into a probability distribution,\\  essentially gives the probability of all outputs. \end{tabular} \\ \hline
 Convolutional &
   \begin{tabular}[c]{@{}l@{}}Extracts different patterns/features from an image, creates "feature maps".\\  These allow for better classification of original image.\end{tabular} \\ \hline
-Pooling &
+MaxPooling &
   \begin{tabular}[c]{@{}l@{}}Takes feature map from convolutional layer, reduces dimensionality\\  (makes image smaller) to decrease amount of computations required\end{tabular} \\ \hline
 \end{tabular}
 \end{table}
 
 \bigskip
-Each layer takes in an input and produces an output, which becomes the input for the layer after it. This can happen in forward propagation where the CNN tries to classify an image, or in backwards propagation where the layer calculates rates of change to use in updating parameters. Since all the layers share these attributes and methods, they may be implemented in the \textit{Layer} class, the  abstract class which all the layers in the CNN inherit from, as shown in the following inheritance diagram. \bigskip
+
+The Layer class has base attributes for the input and output of the layer, as well as the rate of change of error with respect to input and rate of change of error with respect to output. The base methods include forward propagation, backwards propagation, and getType, which returns the type of layer e.g. returns 'ReLU' when implemented for ReLU class. \bigskip
 
 \begin{center}
-\includegraphics[width=14cm]{Images/Inheritance.png}
+\includegraphics[width=16cm]{Images/inheritance.drawio.png}
 \end{center}
 
-The layer class represented in class diagram form:\bigskip
+\subsection{NeuralNetwork class}
 
-\begin{table}[h!]
-\centering
-\begin{tabular}{|l|}
+The NeuralNetwork class allows for the instantiation of a NeuralNetwork object. This object holds different layer objects in a specific order, tailored to the function of the neural network that the NeuralNetwork object represents. NeuralNetwork objects are named, and have the ability to  saved to and retrieved from a text file the attributes of the layers in the NeuralNetwork object, so that the same neural network may be utilised/trained over multiple program runs. \bigskip
+
+There exists a \textit{has a} relationship between a NeuralNetwork object and the different layer objects that it houses. There is no need for a layer to exist independently of a Neural Network; The layer only has a purpose when it is part of a neural network, and multiple neural networks cannot share the same layer object as the attribute values of the layer will be unique and specialised for the neural network it exists in. Considering this, it would make more sense that the association between the objects is implemented as a \textit{composition} and not \textit{aggregation}. Thus, adding layers to a neural network is implemented as a method in the NeuralNetwork class that instantiates the Layer object, using appropriate data passed in to create it. \bigskip 
+
+\begin{center}
+\includegraphics[width=8cm]{Images/nnlayerassoc.drawio.png}
+\end{center}
+
+The NeuralNetwork class has a class variable savedNetworks. At the start of the program, the class opens the text file 'savedNetworks.txt', which stores the information needed of a neural network to upload it. This includes it's name, which is the unique identifier of a NeuralNetwork object, the layers in the neural network, and the values for the attributes of the layers. \bigskip
+
+The structure of the text file is as follows:
+\begin{center}
+    \textit{
+    NN1 name\\
+    NN1 data\\
+    NN2 name\\
+    NN2 data\\
+    ...
+    }
+\end{center}
+The file saves every neural network over two lines, where the first line contains it's name. The second has a list of data necessary to recreate the saved neural network. Every item in the list is a list of information of a layer in the neural network, in the correct order of the layers. This layer list contains a string of the type of layer, e.g. 'ReLU' if the layer is a ReLU layer, and the rest of the list contains any necessary information on the attributes of the layers, such as weights/biases, needed to recreate the layer. \bigskip
+
+Every line in the text file is stored in the savedNetworks class variable list, so that it looks like [NN1 name, NN1 data, NN2 name, NN2 data, ...]. This list is used by the class to save and retrieve neural networks.
+
+The following class definition gives an overview of the NeuralNetwork class.\bigskip
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
 \hline
-\multicolumn{1}{|c|}{Layer}                                    \\ \hline
-\begin{tabular}[c]{@{}l@{}}input\\ output\\ dE\textunderscore dI\\ dE\textunderscore dO \end{tabular}         \\ \hline
-\begin{tabular}[c]{@{}l@{}}forward()\\ backward()\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}l@{}}Object\\ variables\end{tabular} & Type    & Description                                                                                                                                                                                                                                \\ \hline
+Name                                                       & String  & The name of the neural network                                                                                                                                                                                                             \\ \hline
+Layers                                                     & List    & \begin{tabular}[c]{@{}l@{}}A list containing all of the layer objects that make up the neural\\ network, in their order\end{tabular}                                                                                                       \\ \hline
+LastHidden                                                 & Integer & \begin{tabular}[c]{@{}l@{}}This is the index of the last hidden layer in the neural network, used\\ to initialise that layer's attributes once another hidden layer is added\\ given that it does not have attributes already\end{tabular} \\ \hline
 \end{tabular}
 \end{table}
 \bigskip
-The forward method takes in the input for the layer as a parameter- which is the output of the previous layer or the input image itself- and does stuff to it to create an output which is passed along.\bigskip
 
-
-In backwards propagation, the final layer calculates the rate of change of the error with respect to its output. Using this, the layer can find the rate of change of its parameters (e.g weights/biases) with respect to the error via chain rule, and so can change the parameters to decrease the error, which is the goal of training. The rate of change of the error with respect to output may also be used to calculate the rate of change of error with respect to its input, which is essentially the rate of change of error with respect to the output of the \textit{previous} layer, since the input of a layer is the output of a preceding layer. The preceding layer can then use this to change its own parameters and find the rate of change of error with respect to its own inputs, and this process carries on until every layer has updated its weights.\bigskip
-
-
-With this, we know that the backward method needs to take in the rate of change of error with respect to its output as a parameter, and uses it to update itself and calculate rate of change of error with respect to its input.\bigskip
-
-Overall, the attributes of a layer are its input, output, rate of change of error with respect to its input, and the rate of change of error with respect to its output (represented as \textit{dE\textunderscore dI} and \textit{dE\textunderscore dO} respectively). These values are not initialised with the layer, but are calculated as the neural network runs its course. Thus, the code to create our Layer abstract class ends up looking like this.\bigskip
-
-
-\begin{lstlisting}[language=Python]
-class Layer:
-    def __init__(self):
-       self._input = None
-       self._output = None
-       self.dE_dO = None
-       self.dE_dI = None
-       
-    def forward(self, _input):
-        pass
-    
-    def backward(self, dE_dO):
-        pass
-\end{lstlisting}
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Method                                                                    & Input/Output                                                                                                 & Description                                                                                                                                                                             \\ \hline
+\begin{tabular}[c]{@{}l@{}}view\_saved\\ (class method)\end{tabular}      & none                                                                                                         & Prints the name of every saved neural network                                                                                                                                           \\ \hline
+\begin{tabular}[c]{@{}l@{}}retrieve\_saved\\ (static method)\end{tabular} & \begin{tabular}[c]{@{}l@{}}Input: name, new name =\\ None\\ Output: NeuralNetwork\end{tabular}               & \begin{tabular}[c]{@{}l@{}}Returns 'name does not exist' if name is not in\\ savedNetworks. Otherwise, retrieves the saved\\ neural network, with the new name if not None\end{tabular} \\ \hline
+addLayer                                                                  & Input: layer info list                                                                                       & \begin{tabular}[c]{@{}l@{}}Creates a layer object using the information in\\ the list, adds the layer to the Layers list of the \\ NeuralNetwork object\end{tabular}                    \\ \hline
+\begin{tabular}[c]{@{}l@{}}propagate\_\\ forwards\end{tabular}            & \begin{tabular}[c]{@{}l@{}}Input: input matrix\\ Output: output matrix\end{tabular}                          & \begin{tabular}[c]{@{}l@{}}Uses input to propagate forwards through every\\ layer one by one from the first layer. Output of \\ last layer is returned\end{tabular}                     \\ \hline
+\begin{tabular}[c]{@{}l@{}}propagate\_\\ backwards\end{tabular}           & Input:dE\_dO, learning rate                                                                                  & \begin{tabular}[c]{@{}l@{}}Uses dE\_dO and learning rate to propagate\\ backwards through every layer, starting from \\ the last layer.\end{tabular}                                    \\ \hline
+train                                                                     & \begin{tabular}[c]{@{}l@{}}Input: training data, results,\\ learning rate, epochs, batch\\ size\end{tabular} & \begin{tabular}[c]{@{}l@{}}Uses the training data and results to train the\\ neural network, using propagate\_forwards\\ and propagate\_backwards\end{tabular}                          \\ \hline
+saveNN                                                                    & none                                                                                                         & \begin{tabular}[c]{@{}l@{}}Saves the NeuralNetwork object, to the text file\\ and to the class variable\end{tabular}                                                                    \\ \hline
+displayLayers                                                             & none                                                                                                         & \begin{tabular}[c]{@{}l@{}}Prints every layer of the neural network, along\\ with some of the layer's attributes\end{tabular}                                                           \\ \hline
+\end{tabular}
+\end{table}
 \bigskip
+The following paragraphs detail some of the methods in greater detail.
 
-\paragraph*{Neural Network Class\\\\}
+\paragraph*{saveNN\\\\}
 
-The basic building blocks of the neural network, the different layers specified previously, must have a way of being connected to each other so as to perform their functions of forwards and backwards propagation. To achieve this, I will create a \textit{Neural Network class}. This will allow for the instantiation of a \textit{Neural Network object}, which will house the Layer objects in their specified order, and allow for the implementation of different neural network methods such as running, training, and saving state. \bigskip 
+This method is used to save a neural network. If the name of the object already exists in the savedNetworks list, outputs the message "Network of this name already exists". Otherwise, a list allLayers is created. \bigskip
+
+For every layer in the Layers attribute, a layerInfo list is created. The layer's type is added to the list, using the getType method of the layer object. Next, required attributes of the layer are stored in this list. This is only needed for the hidden, convolutional and max-pooling layer. The following information is also added to this layerInfo list for these layers.
+\begin{enumerate}
+    \item Hidden: The neurons, weights, and biases of the layer
+    \item Convolutional: The input depth, output depth, kernel size, the kernels, and the biases of the layer
+    \item Max-pooling: The size and the stride of the pooling kernel.
+\end{enumerate}
+The layerInfo list is added to the allLayers list. This is done for every layer. Finally, the name of the file and the allLayers list are written to the text file, on separate lines, and both items are appended to the savedNetworks list.
+
+\paragraph*{retrieve\_saved\\\\}
+
+This method retrieves a saved neural network. It is a static method, so does not require an object to call. The name of the neural network to retrieve is taken as an input, with or without a new name. If the name does not exist in the savedNetworks list, then this message is returned. Otherwise, proceeds. \bigskip
+
+It gets the index of the name in the list, and gets the neural network data by getting the item from the list at the position of index+1, since it is stored right after the name. The data is evaluated, turning it from a string to list. A NeuralNetwork object is created, with the same name as the retrieved neural network if no new name was input, otherwise with the new name. Then, for every item in the data list, the addLayer method is called to add the layer to the NeuralNetwork object. Finally, this object is returned.
+
+\paragraph*{addLayer\\\\}
+
+This method is used to add a layer to the neural network, from a list containing information on the layer. This might not contain all of the attributes of the layer, for example if a neural network is being created for the first time as opposed to being retrieved. In this scenario, these attributes will have to be initialised.\bigskip
+
+The first item from the list is used to determine the type of the layer. Depending on what type it is, that layer object is created.
+\begin{enumerate}
+    \item Hidden: A Hidden object is created. The second item in the list is set as the number of neurons attribute for the object. If the length of the list is longer than 2, then the third item is set as the object's weights attribute, and the third the biases attribute. Weights and biases of a neural network are of the layer after it, so the last hidden layer does not need these attributes, it is merely an output layer. Thus, when a new hidden layer is added, it is the \textit{previous} hidden layer whose attributes need initialising. \bigskip
+
+    This layer is gotten using the NeuralNetwork's LastHidden attribute, which has the index of the last hidden layer of the set. If it is None, then the hidden layer being added is the first hidden layer of the neural network, so nothing needs to happen. Otherwise, the layer object of the previous hidden layer is gotten using the Layers list and the index. This layer has its biases initialised as a matrix of number of neurons of layer being added (second item of list) by 1. Every value in this matrix is set at 0.01. Next, the objects weights are initialised as a matrix of number of neurons of layer being added (second item of list) by number of neurons of previous hidden layer, gotten by using getNeurons on the previous layer. The values are initialised using Xavier initialisation. A variable x is set to 1/(number of neurons of previous layer). Values of the weights matrix are generated randomly, uniform between a range of -x to x. This initialisation optimises the neural network. The matrices are made using the mm.makematrix function, part of my Matrix Manipulation class of functions that will be covered later. \bigskip
+
+    Finally, the newly added hidden layer is set as the last hidden layer, by setting the LastHidden attribute to the length of the Layers list (this is before current layer is added to it, so represents the index that the current layer will have in the Layers list).
+
+    \item Convolutional: The second, third, fourth and fifth items of the list are used to instantiate a Convolutional object. If the length of the list is greater than 5, then the object's kernels attribute is set at item 6 of the list, and biases set at item 7. Otherwise, these need to be initialised for the layer object. Using the other information in the list, the dimensions of the bias are worked out, and a matrix of these dimensions is made using mm.makematrix. The vales of the items is set at 0.01. The same goes for the kernels, for each kernel a matrix is created of the calculated dimensions, and the value is randomly generated using a Gaussian distribution, with a mean of 0 and standard distribution of 0.01. The biases and weights attributes of the layer object are set to these matrices. 
+
+    \item ReLU: A ReLU object is created.
+    \item Softmax: A Softmax object is created.
+    \item MaxPooling: A MaxPooling object is instantiated passing in the second and third items of the list, the size and stride.
+    \item Anything else: returns "Invalid layer type"
+\end{enumerate}
+Finally, the created layer object is added to the set's Layers list.
+
+\paragraph*{train\\\\}
+
+This method is used to train the neural network on a list of data, with it's results list. The method takes in data and results, a learning rate, epoch and a batch size. The data represents the items of a dataset to be trained with, with the labels of the data in the results list, at the same indexes. A learning rate is how extreme changes are made to parameters with a backwards pass. An 'epoch' is how many times the whole dataset is trained over. Therefore, for the number of epochs taken in as an argument, the whole dataset is trained over. \bigskip
+
+The batch size refers to the number of data-value pairs worked through before a back-propagation is made. For example, if the batch size is 1 then after every forward propagation there is a backwards propagation. If the batch size is \textit{n}, then there is one backwards propagation for every \textit{n} forwards propagation. The dE\_dO used to propagate backwards is the average dE\_dO of every forwards propagation in the batch. \bigskip
 
 
-There exists a \textit{has a} relationship, with a Neural Network object having many Layer objects related to it. There is no need for a layer to exist independently of a Neural Network; The layer only has a function when it is part of a neural network, and multiple neural networks cannot share the same layer as the parameter values of the layer will be unique and specialised for the neural network it exists in. Considering this, it would make more sense that the association between the objects is \textit{composition} and not \textit{aggregation}. This means that there is a strong relationship between a neural network object and a layer object that exists in it: The layer is only created to exist in the neural network that it is instantiated in, and serves no value if the neural network object that contains it ceases to exist. \bigskip 
+First, the dimensions of a result (rx,ry) are found, by using the mm.dim function on the first item of the results list. Next, for the number of epochs, the dataset is trained with. For each epoch, the dataset must be shuffled, to prevent overfitting. This is achieved using the mm.testrand function, which takes in the length of the dataset and returns a list of items from 0 to the length-1, randomly shuffled. These are used as indexes: for every number in the list, an item from the data and results are used. This effectively allows for the order in which data-result pairs are trained with to be different every time. \bigskip
 
-INSERT ASSOCIATION DIAGRAM, then deleted paragraph\bigskip 
+At the start of the epoch, a totalError matrix and temp matrix is initialised using mm.makematrix, both of dimensions (rx,ry) and values set at 0. A count is initialised at 0, and then shuffled dataset is trained with. For every data-result pair, the count is incremented by 1. The data is used to propagate forwards through the neural network, and gets an output. The output is used to find the mean square error, calculated using the output and the result with the mm.msError function. This mean square error is added onto the totalError using mm.summatrix. The dE\_dO is calculated also using the output and result, and this gets added to the temp matrix. \bigskip
+
+If the count mod batch size is 0, then a back propagation is made. The temp matrix is the sum of the dE\_dO over the batch. Dividing the values by the batch size therefore gives the average dE\_dO of the batch. This is done using mm.scalematrix, scaling the temp matrix by 1/(batch size). The calculated average dE\_dO is used along with the learning rate to propagate backwards through the neural network. The values in the temp matrix are set back to zero, for the next batch. This process is repeated for every item in the dataset. \bigskip
+
+After every item in the dataset is trained with, the program outputs the epoch number. All of the numbers in totalError is summed to get a single number, which is displayed after the epoch number. This number is useful information as it is an indicator of progress. As the neural network trains, the errors of every forward propagation gets smaller, so with every epoch the totalError is smaller so the sum of it's values is smaller too. The rate at which it decreases, and how much it deceases by over multiple epochs shows how well the model is learning. \bigskip
+
+After the epoch and error numbers are output, the next epoch begins, until finally all epochs have been trained over.
 
 \paragraph*{Dense Layer\\\\}
 
@@ -627,3 +1147,11 @@ Adds a layer to the neural network. Network-Layers list updated.
 deleted paragraph:
 Initialising a neural network object will require a name, to identify the NN. Upon initialisation, a \textit{Network_Layers} list will be created, that stores all the layers in the neural network.
 As for the methods of the Neural Network Class, it will of course need the ability to initialise and add the different types of layers into the neural network object. With the layers, the NN class will need the fundamental operations of forward propagation and backwards propagation, where it propagates through every single layer one after the other and returns an output. Building on these two methods, the class will have a \textit{learn} method where it runs a single training cycle, and then from this a \textit{training} method where training data is used to run multiple training cycles. Once the neural network has completed training and is able to perform its task, it will need a way to be saved so that it can be used later without having to re-train it. Thus, a \textit{save_NN} and \textit{load_NN} method will be needed. For added functionality, the NN class will have a \textit{view_saved} method to view all saved neural networks so the user can know what NNs can be loaded, and this method will use a class variable list that exists to store all saved neural networks. \bigskip 
+
+The forward method takes in the input for the layer as a parameter- which is the output of the previous layer or the input image itself- and does stuff to it to create an output which is passed along.\bigskip
+
+In backwards propagation, the final layer calculates the rate of change of the error with respect to its output. Using this, the layer can find the rate of change of its parameters (e.g weights/biases) with respect to the error via chain rule, and so can change the parameters to decrease the error, which is the goal of training. The rate of change of the error with respect to output may also be used to calculate the rate of change of error with respect to its input, which is essentially the rate of change of error with respect to the output of the \textit{previous} layer, since the input of a layer is the output of a preceding layer. The preceding layer can then use this to change its own parameters and find the rate of change of error with respect to its own inputs, and this process carries on until every layer has updated its weights.\bigskip
+
+With this, we know that the backward method needs to take in the rate of change of error with respect to its output as a parameter, and uses it to update itself and calculate rate of change of error with respect to its input.\bigskip
+
+Overall, the attributes of a layer are its input, output, rate of change of error with respect to its input, and the rate of change of error with respect to its output. These values are not initialised with the layer, but are calculated as the neural network runs its course.
