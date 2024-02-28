@@ -1007,6 +1007,8 @@ MaxPooling &
 
 The Layer class has base attributes for the input and output of the layer, as well as the rate of change of error with respect to input and rate of change of error with respect to output. The base methods include forward propagation, backwards propagation, and getType, which returns the type of layer e.g. returns 'ReLU' when implemented for ReLU class. \bigskip
 
+Please note that I will be referring to the rate of change of error with respect to input as dE\_dI, and rate of chnage of error with respect to output as dE\_dO from here on, as it is in my program code. \bigskip
+
 \begin{center}
 \includegraphics[width=16cm]{Images/inheritance.drawio.png}
 \end{center}
@@ -1113,7 +1115,7 @@ This method is used to train the neural network on a list of data, with it's res
 The batch size refers to the number of data-value pairs worked through before a back-propagation is made. For example, if the batch size is 1 then after every forward propagation there is a backwards propagation. If the batch size is \textit{n}, then there is one backwards propagation for every \textit{n} forwards propagation. The dE\_dO used to propagate backwards is the average dE\_dO of every forwards propagation in the batch. \bigskip
 
 
-First, the dimensions of a result (rx,ry) are found, by using the mm.dim function on the first item of the results list. Next, for the number of epochs, the dataset is trained with. For each epoch, the dataset must be shuffled, to prevent overfitting. This is achieved using the mm.testrand function, which takes in the length of the dataset and returns a list of items from 0 to the length-1, randomly shuffled. These are used as indexes: for every number in the list, an item from the data and results are used. This effectively allows for the order in which data-result pairs are trained with to be different every time. \bigskip
+First, the dimensions of a result (rx,ry) are found, by using the mm.dim function on the first item of the results list. Next, for the number of epochs, the dataset is trained with. For each epoch, the dataset must be shuffled, to prevent over-fitting. This is achieved using the mm.testrand function, which takes in the length of the dataset and returns a list of items from 0 to the length-1, randomly shuffled. These are used as indexes: for every number in the list, an item from the data and results are used. This effectively allows for the order in which data-result pairs are trained with to be different every time. \bigskip
 
 At the start of the epoch, a totalError matrix and temp matrix is initialised using mm.makematrix, both of dimensions (rx,ry) and values set at 0. A count is initialised at 0, and then shuffled dataset is trained with. For every data-result pair, the count is incremented by 1. The data is used to propagate forwards through the neural network, and gets an output. The output is used to find the mean square error, calculated using the output and the result with the mm.msError function. This mean square error is added onto the totalError using mm.summatrix. The dE\_dO is calculated also using the output and result, and this gets added to the temp matrix. \bigskip
 
@@ -1123,35 +1125,232 @@ After every item in the dataset is trained with, the program outputs the epoch n
 
 After the epoch and error numbers are output, the next epoch begins, until finally all epochs have been trained over.
 
-\paragraph*{Dense Layer\\\\}
+\subsection{Matrix Manipulation class}
 
-Propagating forwards in a dense layer is explained in the research section of the analysis, and as was mentioned can be simplified by with vector calculations as the neurons, weights and biases can be represented as matrices. The equation for this is Y = W X + B where Y is the matrix of neurons of the first layer, X is the matrix of neurons of the second layer, W is the matrix of all weights between neurons of each dense layer and B is the matrix of biases of the second layer.\bigskip
+The Matrix Manipulation class, mm for short, is a class of functions used to perform actions with matrices, used by the neural network and the layer classes. The functions are implemented as static methods so that an instantiated object is not required to call the functions. \bigskip
 
+The following table gives an overview of all of the functions in the class.
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Method       & Input/Output                                                                                                 & Description                                                                                                                                                                                                                                                                                                                                                                                                                       \\ \hline
+makematrix   & \begin{tabular}[c]{@{}l@{}}Input: rows, columns, \\ num = None, gauss=None\\ Output: new matrix\end{tabular} & \begin{tabular}[c]{@{}l@{}}Creates a matrix of dimensions rows x columns.\\ Values of  items set at num. If num is a list and \\ gauss is None, then values generated randomly,\\ between 1st and 2nd item of list. If num is a list\\ and gauss is not None, then values generated \\ with gaussian distribution, with the mean as 1st\\ item of list and standard deviation as the 2nd.\\ Returns this new matrix.\end{tabular} \\ \hline
+prod         & \begin{tabular}[c]{@{}l@{}}Input: matrix a, matrix b\\ Output: new matrix\end{tabular}                       & Returns the product of two matrices                                                                                                                                                                                                                                                                                                                                                                                               \\ \hline
+summatrix    & \begin{tabular}[c]{@{}l@{}}Input: matrix a, matrix b\\ Output: new matrix\end{tabular}                       & Returns the sum two matrices                                                                                                                                                                                                                                                                                                                                                                                                      \\ \hline
+submatrix    & \begin{tabular}[c]{@{}l@{}}Input: matrix a, matrix b\\ Output: new matrix\end{tabular}                       & Returns the difference of two matrices                                                                                                                                                                                                                                                                                                                                                                                            \\ \hline
+scalematrix  & \begin{tabular}[c]{@{}l@{}}Input: matrix, scale factor\\ Output: new matrix\end{tabular}                     & \begin{tabular}[c]{@{}l@{}}Scales a matrix by the scale factor. Returns this\\ new matrix\end{tabular}                                                                                                                                                                                                                                                                                                                            \\ \hline
+raise\_power & \begin{tabular}[c]{@{}l@{}}Input: matrix, power\\ Output: new matrix\end{tabular}                            & \begin{tabular}[c]{@{}l@{}}Raises every item of a matrix to a power.\\ Returns this new matrix\end{tabular}                                                                                                                                                                                                                                                                                                                       \\ \hline
+hadamard     & \begin{tabular}[c]{@{}l@{}}Input: matrix a, matrix b\\ Output: new matrix\end{tabular}                       & Returns the Hadamard product of two matrices                                                                                                                                                                                                                                                                                                                                                                                      \\ \hline
+transpose    & \begin{tabular}[c]{@{}l@{}}Input: matrix\\ Output: new matrix\end{tabular}                                   & Transposes a matrix. Returns this new matrix                                                                                                                                                                                                                                                                                                                                                                                      \\ \hline
+msError      & \begin{tabular}[c]{@{}l@{}}Input: matrix a, matrix b\\ Output: new matrix\end{tabular}                       & \begin{tabular}[c]{@{}l@{}}Returns the mean-square error between two\\ matrices\end{tabular}                                                                                                                                                                                                                                                                                                                                      \\ \hline
+dE\_dO       & \begin{tabular}[c]{@{}l@{}}Input: matrix a, matrix b\\ Output: new matrix\end{tabular}                       & \begin{tabular}[c]{@{}l@{}}Returns the rate of change of error with respect\\ to output. Used for back-propagation\end{tabular}                                                                                                                                                                                                                                                                                                   \\ \hline
+dim          & \begin{tabular}[c]{@{}l@{}}Input: matrix\\ Output: rows, columns\end{tabular}                                & Returns the dimensions of a matrix                                                                                                                                                                                                                                                                                                                                                                                                \\ \hline
+alter\_dim   & \begin{tabular}[c]{@{}l@{}}Input: matrix, new\\ dimensions\\ Output: new matrix\end{tabular}                 & \begin{tabular}[c]{@{}l@{}}Alters the dimensions of matrix to make it 1 x n\\ or n x 1. Returns this new matrix\end{tabular}                                                                                                                                                                                                                                                                                                      \\ \hline
+copy         & \begin{tabular}[c]{@{}l@{}}Input: matrix\\ Output: new matrix\end{tabular}                                   & \begin{tabular}[c]{@{}l@{}}Returns a copy of the matrix. Copying a matrix\\ is not a feature in python like it is with a list\end{tabular}                                                                                                                                                                                                                                                                                        \\ \hline
+testrand     & \begin{tabular}[c]{@{}l@{}}Input: size\\ Output: list\end{tabular}                                           & \begin{tabular}[c]{@{}l@{}}Returns a list of numbers from 0 to size-1,\\ randomly shuffled. Used for training NN\end{tabular}                                                                                                                                                                                                                                                                                                     \\ \hline
+identity     & \begin{tabular}[c]{@{}l@{}}Input: size\\ Output: matrix\end{tabular}                                         & \begin{tabular}[c]{@{}l@{}}Returns an identity matrix of dimensions \\ size x size\end{tabular}                                                                                                                                                                                                                                                                                                                                   \\ \hline
+convolve     & \begin{tabular}[c]{@{}l@{}}Input: matrix, kernel, full=\\ None\\ Output: new matrix\end{tabular}             & \begin{tabular}[c]{@{}l@{}}Convolves a matrix by a kernel. Does valid\\ convolution, unless full is not None. Returns the\\ resulting matrix\end{tabular}                                                                                                                                                                                                                                                                         \\ \hline
+rot          & \begin{tabular}[c]{@{}l@{}}Input: matrix\\ Output: new matrix\end{tabular}                                   & Rotates a matrix. Returns the new matrix                                                                                                                                                                                                                                                                                                                                                                                          \\ \hline
+pool         & \begin{tabular}[c]{@{}l@{}}Input: matrix, size, stride,\\ mode\\ Output: new matrix, list\end{tabular}       & \begin{tabular}[c]{@{}l@{}}Pools a matrix using a kernel of dimensions\\ size x size and with specified stride. Mode\\ determines whether pool is min, max, or average.\\ Returns resulting matrix, as well as a list of the \\ indices of the max pixels if mode is max\end{tabular}                                                                                                                                             \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+The convolve and pool functions will be explained in greater depth with the Convolutional layer and MaxPooling layer respectively. \bigskip
+
+\subsection{Back-propagation}
+
+During training, after an input has propagated forwards through every layer, the final output of the neural network, the output of the last layer, is compared against the expected result, and a cost/error is calculated. This cost represents how off the output of the neural network is from the correct result. \bigskip
+
+When a back-propagation occurs depends on the type of gradient descent. There are three types:
+\begin{enumerate}
+    \item Batch gradient descent: Every item in the dataset is first propagated-forwards with before a back-propagation occurs
+    \item Mini-batch gradient descent: A back-propagation occurs after a fixed number of items in the dataset are propagated-forwards with. This fixed number is the 'batch-size'
+    \item Stochastic gradient descent: A back-propagation occurs after every single item in the dataset is propagated forwards through
+\end{enumerate}
+My NeuralNetwork's train method is implemented as taking in a 'batch-size'. This essentially allows any of the above three gradient descent methods displayed above to be used. Stochastic gradient descent is achieved by setting the batch size to 1, batch gradient descent is achieved by setting the batch size to the total number of items in the dataset, and any other value for the batch size between these two results in a mini-batch gradient descent. In my neural networks, I use a batch size of 1 as I find stochastic gradient descent gives me the best results for my dataset. \bigskip
+
+Back-propagation is already explained in the Analysis section, but to summarise, it involves updating the model parameters using the rates of change of the parameters with respect to the cost, in an attempt to decrease the cost function. The gradient is calculated, and is used to move down the gradient in an attempt to reach it's minimum point- hence the term gradient descent. One factor that affects the convergence is the learning rate, which is how drastically the changes are made. A higher learning rate results in bigger changes which could lead to travelling towards the minimum point faster, but it runs the risk of moving too drastically and overshooting the minimum point. Learning rate is something that must be determined and tweaked heuristically/ through trial and error to achieve the optimal convergence of the neural networks I create. \bigskip
+
+In order for back-propagation to happen, however, the error must first be found, after with the rate of change of the error with respect to the output of the final layer must be found. This dE\_dO is passed into the last layer, used to update any of it's parameters, and used to find the rate of change of the error with respect to the \textit{input} of the layer. This dE\_dI is the dE\_dO of the \textit{previous} layer, since the output of one layer is the input of the next when forwards propagation occurs. Finding the dE\_dI of a layer finds the dE\_dO of the previous layer, which allow the previous layer to update it's parameters to decrease error. \bigskip
+
+There are different methods of finding error. My solution uses the mean square error. The MSE finds the difference between the ouput matrix and true result matrix, squares the values in the matrix so that they are all positive, and divides these values by the total number of items in the matrix, hence why it is called the mean square error. This can be represented by the following formula.\footnote{\url{https://www.bragitoff.com/2021/12/mean-squared-error-loss-function-and-its-gradient-derivative-for-a-batch-of-inputs-python-code/}}
+\[\frac{1}{N}\sum_{i=1}^{N}(y_{i}-\hat{y}_{i})^{2}\]
+This is implemented in my solution using the mm.msError function, which takes in the output and true result matrices as input, uses mm.submatrix to find the difference, uses mm.raise\_power with 2 input to square every element, uses mm.dim on the output to find the number of rows, representing the number of items, and finally uses mm.scalematrix to scale the squared difference by 1/(number of rows), to divide every term in the matrix by the total number of terms. The msError function is used in the train method of the NeuralNetwork to find the total error over an epoch, to output as the neural network trains, as an indicator of it's learning progress. \bigskip
+
+The actual back-propagation does not make use of the MSE, but of its derivative. This can be calculated using the chain rule. Its formula looks like this.
+\[\frac{2}{N}\sum_{i=1}^{N}(y_{i}-\hat{y}_{i})\]
+This is implemented in my solution with the mm.dE\_dO function, which takes in the output and true result matrices as input, uses mm.submatrix to find the difference, uses mm.dim on the output to find the number of rows, representing the number of items, and finally uses mm.scalematrix to scale the difference by 2/(number of rows). The dE\_dO function is used in the train method of the NeuralNetwork, where it sums the dE\_dOs of every forward-propagation in a batch, and finds the mean dE\_dO by diving the total by the batch size, which it uses to propagate backwards, for every batch.
+
+\subsection{Hidden class}
+
+The Hidden class is a class which inherits from the Layer class, used to implement a hidden layer.
+
+\paragraph*{Specialised attributes\\\\}
+
+The hidden layer is a layer of neurons. Every neuron in the layer is connected to every neuron in a hidden layer before/after it, and every neuron has a bias attached to it. \bigskip
+
+Forward propagation involves taking an input matrix, multiplying it by the weights matrix, and adding the bias matrix, to get the output matrix. The biases added on are the biases attached to the next hidden layer's neurons. Therefore, I implemented an attribute for the 'next layer biases', rather than for the current layer's biases. This is because the layer does not make use of it's own biases, so storing it in an attribute would be wasteful, and because it does make use of the next layer's biases, which would require having to constantly fetch the biases of the next hidden layer, increasing computations. It only therefore makes sense to have an attribute for the next hidden layer's biases. \bigskip
+
+The same logic can be applied to the weights matrix, a hidden layer only makes use of the weights it has with the hidden layer after it and not before it, so the weights attributes will store the weights matrix of the weights before the current layer and the layer that comes after it. \bigskip
+
+Therefore, these attributes default as None, since adding a hidden layer to the neural network makes it the last hidden layer in that neural network, there are no next-layer biases or weights with the next layer. However, when another hidden layer \textit{does} get added after this, then the weights and biases do exist for it, so adding a hidden layer to a neural network initialises the weights and biases attributes of the previous hidden layer. This initialisation requires the number of neurons of both neural networks to get the dimensions of the weights and biases matrices correct, and the values are initialised with Xavier initialisation for optimisation. This is further explained in the NeuralNetwork class section where it is explained in the addLayer paragraph. \bigskip
+
+Overall, the specialised attributes of this class are the weights, the next layer biases which I will call the NLbiases, and the number of neurons of the layer. The layer will also need the an attribute for the matrix shape of the input.
+
+\paragraph*{Forward propagation\\\\}
+
+Before the layer can propagate forwards, it must ensure the input matrix is flattened, so that it is only 2 dimensional. This is not the case if the layer before it was convolutional/max-pooling. In this case, it flattens the input, and makes a note of the original input dimensions. \bigskip
+
+Next, the layer checks if the weights matrix is None. If it is, then the layer is the last layer of the neural network, so it simply returns the input. If it does, then finds the output using the formula \[Y = WX + B\]where Y is the output, W is the weights matrix, X is the input and B is the biases matrix. The output is calculated using mm.prod to multiply the weights by the input, and using mm.summatrix on the result of this and the biases. The input attribute of the layer is set at the input using mm.copy, as this will be needed in the back-propagation. Finally, the output is returned.
+
+\paragraph*{Backwards propagation\\\\}
+
+If the weights matrix is None, then the layer is the last layer in the neural network, so the dE\_dI is simply the dE\_dO. This is returned. \bigskip
+
+Otherwise, the layer must update it's weights and biases. It needs to find the rate of change of error with respect to respect to weights, with respect to biases, and with respect to the input, which I will refer to as dE\_dW, dE\_dB and dE\_dI respectively. Formulae for these can be derived using the chain rule.\footnote{\url{http://cs231n.stanford.edu/handouts/linear-backprop.pdf}} \bigskip
+
+The dE\_dW can be found with the formula \[\frac{\partial E}{\partial W} = X^{T}\frac{\partial E}{\partial O}\]where X is the input from the forward propagation that was stored to the input attribute of the layer. In other words, the the dE\_dW is equal to the input matrix transposed multiplied by the the dE\_dO. This is implemented using mm.transpose on the input gotten from the input attribute, and multiplied to the dE\_dO with mm.prod. The resulting dE\_dW is then scaled by the learning rate using mm.scalematrix before it is subtracted from the layer's weights using mm.submatrix. \bigskip
+
+The dE\_dB can be found with the formula \[\frac{\partial E}{\partial B} = \frac{\partial E}{\partial O}\]It is simply equal to the dE\_dO. Therefore, the result of scaling the dE\_dO by the learning rate with mm.scalematrix is subtracted from the layer's biases using mm.submatrix. \bigskip
+
+The dE\_dI can be found with the formula \[\frac{\partial E}{\partial I} = \frac{\partial E}{\partial O}W^{T}\]In other words, it is the product of the dE\_dO with the transposed matrix of the weights. A matrix of the transposed weights is gotten using mm.transpose on the weights, which is multiplied to the dE\_dO using mm.prod with the dE\_dO in front, as shown in the formula. \bigskip
+
+If the input matrix shape attribute is None, then the input of the layer did not have to be flattened when it was passed in, so the dE\_dI can simply be returned. It it is not None, then the dE\_dI must be made 3D, into the same dimensions as those stored by the attribute. The dE\_dI is made into a matrix of this shape, before being returned.
+
+\subsection{ReLU class}
+
+The ReLU class is a class which inherits from the Layers class, used to implement a ReLU activation layer.
+
+\paragraph*{Specialised attributes\\\\}
+
+The ReLU activation is used after both the hidden layer and the convolutional layer. The activation function must be implemented in a way to work with both of these, since the output of the hidden layer is 2D, while the output of the convolutional layer is 3D. \bigskip
+
+My solution to this problem is to make the ReLU work with 3D matrices, and deal with 2D matrices by turning them 3D, simply adding the matrix to an empty list to turn it from \textit{a x b} to \textit{1 x a x b}. At the end, if it was 2D at the start then the matrix to be returned is made 2D as well. ReLU objects have a boolean attribute is3D, set to True if the input to the layer is 3D and False if it is 2D. \bigskip
+
+\paragraph*{Forward propagation\\\\}
+
+If the first item of the first item of the input is a list, then the input is 3D. The attribute is3D is set to True. Otherwise it is set to False, in which case the input is made 3D by adding it to an empty list. The input is now saved to the input attribute of the layer, to be used for back propagation. \bigskip
+
+The ReLU activation function introduces non-linearity into the neural network by getting rid of all negative values in the input, making them zero. In prototyping I found this to be troublesome because of the 'dying ReLU' problem, which I solved by implementing instead a 'leaky ReLU'. The leaky ReLU . The leaky ReLU does not completely kill negative values, but instead makes them very small, generally multiplying them by 0.01. This worked a lot better for me. \bigskip
+
+For example, given the following matrix
+\begin{center}
+    $ \begin{bmatrix}
+    1 & 5 & -3 \\
+    7 & 2 & -1 \\
+    6 & -12 & 2 
+    \end{bmatrix}  $
+\end{center}
+The output matrix should be 
+\begin{center}
+    $ \begin{bmatrix}
+    1 & 5 & -0.03 \\
+    7 & 2 & -0.01 \\
+    6 & -0.12 & 2 
+    \end{bmatrix}  $
+\end{center}
+\bigskip
+
+This is implemented in my solution by applying the leaky ReLU function to every value in the matrix
+\[f(z) = max(0.01z, z)\]If the value is positive, the max is the value itself, so it does not change. If it is negative however, then the max is the value x 0.01, so this replaces it. \bigskip
+
+Finally, if is3D is True, then the matrix is returned. Otherwise, the matrix is made 2D again by taking the first and only item out of the matrix, and returning this 2D matrix.
+
+\paragraph*{Backwards propagation\\\\}
+
+The input is retrieved from the input attribute of the layer. The back-propagation is also designed to work with 3D matrices, so if the dE\_dO is 2D and is3D is True, then the dE\_dO is made 3D by adding it to an empty list. \bigskip
+
+The back-propagation of a ReLU works by multiplying values of the dE\_dO by 0.01 at the same positions where they were done so to the input, to find the dE\_dI. For instance, following on from the example in the forward propagation, take the following matrix of dE\_dO
+\begin{center}
+    $ \begin{bmatrix}
+    0.3 & 34 & -36 \\
+    89 & 6 & -4.4 \\
+    0.1 & -112 & 24 
+    \end{bmatrix}  $
+\end{center}
+Then assuming the first matrix from the example in the forwards propagation is the input, the dE\_dI is 
+\begin{center}
+    $ \begin{bmatrix}
+    0.3 & 34 & -0.36 \\
+    89 & 6 & -0.044 \\
+    0.1 & -1.12 & 24 
+    \end{bmatrix}  $
+\end{center}
+since in the input it is the 3rd number on the first and second row, and the 2nd number on the last row which has changed, so the numbers in these positions in the dE\_dO are also multiplied by 0.01 to get the dE\_dI. \bigskip
+
+This is implemented in my solution by first creating a temporary matrix based off of the input matrix. For every value in the input matrix, if it is positive then a value of 1 is put into this position in the temp matrix. Otherwise, if it is negative, then a value of 0.01 is put in the temp matrix. What results is a matrix that has a 1 where the input matrix would have a positive number, and a 0.01 where the input matrix would have a negative number. Finally, the dE\_dI is found by computing the element-wise product of this temp matrix and the dE\_dO matrix, using mm.hadamard. \bigskip
+
+If is3D is True, then the dE\_dI is returned. Otherwise, the dE\_dI is made 2D by getting the first and only item from the matrix. This is retuned.
+
+\subsection{Softmax class}
+
+The Softmax class is a class which inherits from the Layers class, used to implement a softmax activation layer. This is the final layer in a neural network, and the layer's purpose is to turn the raw output of the neural network into a vector of probabilities, for predictions to be made. \bigskip
+
+\paragraph*{Forward propagation\\\\}
+
+The forward propagation of the softmax layer simply applies the softmax function to the input matrix. \[\sigma(z_i) = \frac{e^{z_{i}}}{\sum_{j=1}^K e^{z_{j}}}\]
+\bigskip
+demonstrate this function, take the the matrix 
+\begin{center}
+    $ \begin{bmatrix}
+    1 \\
+    2 \\
+    3 
+    \end{bmatrix}  $
+\end{center}
+Applying the softmax function to the matrix would give
+\begin{center}
+\begin{equation*}
+    \begin{bmatrix}
+    \frac{e^{1}}{e^{2}+e^{3}+e^{4}} \\\\
+    \frac{e^{2}}{e^{2}+e^{3}+e^{4}} \\\\
+    \frac{e^{3}}{e^{2}+e^{3}+e^{4}} 
+    \end{bmatrix}
+\end{equation*}
+\end{center}
+which could simplify into
+\begin{center}
+    $ \begin{bmatrix}
+    0.0900 \\
+    0.2447 \\
+    0.6652 
+    \end{bmatrix}  $
+\end{center}
+\bigskip
+
+The forward propagation method applies this using map and lambda functions, to find e to the power of every item, find the sum of these, and divide all the items by this sum. The output is copied to the output attribute, as it is needed in the back-propagation, and the output is returned.
+
+\paragraph*{Backwards propagation\\\\}
+
+The layer only needs to find the dE\_dI, however the formula to do so is very complicated. Luckily, it can be simplified to the formula \footnote{Derived by The Independent Code at 5:45 in the following video: \url{https://www.youtube.com/watch?v=AbLvJVwySEo}}
+\begin{center}
+\begin{equation*}
+    (M\circledcirc (I-M^{T}))\cdot \frac{\partial E}{Y}\; \; \; \; \; \; \; M=\begin{bmatrix}
+    y_{1} &  y_{1} &  \cdots & y_{1} \\ 
+    y_{2} &  y_{2} &  \cdots & y_{1}\\ 
+     \vdots & \vdots  & \ddots  &\vdots  \\ 
+    y_{n} &  y_{n}&  \cdots & y_{n}
+    \end{bmatrix}
+\end{equation*}
+\end{center}
+where \textit{I} represents the identity matrix, the \(\circledcirc\) symbol refers to an element-wise product, and\(\frac{\partial E}{Y}\) is just the dE\_dO. \bigskip
+
+This formula makes the back propagation a lot easier to implement. The output of the forwards propagation is retrieved from the output attribute, and this is used to create the M matrix as is shown in the formula, with the item in every row repeated for the number of rows such that we are left with a matrix of size n x n. \bigskip
+
+The mm.identity function is used, with the length of the output matrix passed in as an argument, to create an identity matrix that is also of size n x n. A transposed M matrix is made using the mm.transpose function on M, and this is subtracted from the identity matrix using mm.submatrix to create a temp matrix. After this, the mm.hadamard function is used to find the element-wise product of the temp matrix with the M matrix, and finally mm.prod is used to find the product of this with the dE\_dO matrix. What is left is the dE\_dI, which is returned.
+
+\subsection{Convolutional class}
+
+The Convolutional class is a class which inherits from the Layers class, used to implement a convolutional layer. The purpose of the convolutional layer is to create feature maps of the image, which leads to better image recognition. Feature maps are created using a kernel to slide over the image, in a process known as a convolution. Performing a convolution is implemented in my solution using the mm.convolve function.
+
+\paragraph*{Convolve function\\\\}
+
+The mm.convolve function takes in
+
+\paragraph*{Forward propagation\\\\}
+\paragraph*{Backwards propagation\\\\}
 
 
 \end{document} 
-
- NOTES:
-FIX FUNCITONALITY OF ADDING LAYERS V LOADING UP THEM. CHECK FOR PERIM VALS BEFORE INITIALISING A LAYER W THEM.
-
-Class method. Displays the names of all saved neural networks.
-
-
-Static method. Takes name of neural network as parameter. If a saved neural network exists
-with this name, then it loads the NN- initialises an object of this saved NN using the stored
-information of its layers and parameter values, creating an exact replica.
-
-
-Adds a layer to the neural network. Network-Layers list updated. 
-
-deleted paragraph:
-Initialising a neural network object will require a name, to identify the NN. Upon initialisation, a \textit{Network_Layers} list will be created, that stores all the layers in the neural network.
-As for the methods of the Neural Network Class, it will of course need the ability to initialise and add the different types of layers into the neural network object. With the layers, the NN class will need the fundamental operations of forward propagation and backwards propagation, where it propagates through every single layer one after the other and returns an output. Building on these two methods, the class will have a \textit{learn} method where it runs a single training cycle, and then from this a \textit{training} method where training data is used to run multiple training cycles. Once the neural network has completed training and is able to perform its task, it will need a way to be saved so that it can be used later without having to re-train it. Thus, a \textit{save_NN} and \textit{load_NN} method will be needed. For added functionality, the NN class will have a \textit{view_saved} method to view all saved neural networks so the user can know what NNs can be loaded, and this method will use a class variable list that exists to store all saved neural networks. \bigskip 
-
-The forward method takes in the input for the layer as a parameter- which is the output of the previous layer or the input image itself- and does stuff to it to create an output which is passed along.\bigskip
-
-In backwards propagation, the final layer calculates the rate of change of the error with respect to its output. Using this, the layer can find the rate of change of its parameters (e.g weights/biases) with respect to the error via chain rule, and so can change the parameters to decrease the error, which is the goal of training. The rate of change of the error with respect to output may also be used to calculate the rate of change of error with respect to its input, which is essentially the rate of change of error with respect to the output of the \textit{previous} layer, since the input of a layer is the output of a preceding layer. The preceding layer can then use this to change its own parameters and find the rate of change of error with respect to its own inputs, and this process carries on until every layer has updated its weights.\bigskip
-
-With this, we know that the backward method needs to take in the rate of change of error with respect to its output as a parameter, and uses it to update itself and calculate rate of change of error with respect to its input.\bigskip
-
-Overall, the attributes of a layer are its input, output, rate of change of error with respect to its input, and the rate of change of error with respect to its output. These values are not initialised with the layer, but are calculated as the neural network runs its course.
