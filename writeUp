@@ -122,7 +122,7 @@ To combat this issue, I have decided to instead identify a LEGO item's element a
 
 There are a few online datasets for LEGO pieces. For my solution I will use a dataset from Kaggle by Joost Hazelet.\footnote{https://www.kaggle.com/datasets/joosthazelzet/lego-brick-images} I will not be using the entire dataset, rather I will be hand picking certain LEGO elements. As mentioned by Jonah the LEGO enthusiast, the most common elements make up a large proportion of existing pieces, so it is imperative I focus on these. I will determine what elements by finding the overlap of elements in the dataset and the elements that exist in the top 30 most common elements using a website 'Brick Architect'.\footnote{https://brickarchitect.com/most-common-lego-parts/} From these elements I will select 'nice' images, where the angle of the piece is adequate enough to determine the element easily. This is all for the purpose of making differentiation as easy as possible for my neural network, given that the task is complicated and I do not have access to great resources or time.\bigskip
 
-As for the image classification, I will create an algorithm to deduce an RGB value representing the RGB colour of the LEGO piece from an image. The issue is that although LEGO items have discrete colours, images of items are affected by things like glare, shadows, etc. Thus, the RGB values of two LEGOs of the same colour from separate images will differ from each other. To combat this, I will use another neural network dedicated to identifying a LEGO colour by the RGB value, using a dataset created by the 'ICT Institute'.\footnote{https://ictinstitute.nl/legocolor-computer-vision-dataset/}\bigskip
+As for the image classification, I will create an algorithm to deduce an RGB value representing the RGB colour of the LEGO piece from an image. The issue is that although LEGO items have discrete colours, images of items are affected by things like glare, shadows, etc. Thus, the RGB values of two LEGOs of the same colour from separate images will differ from each other. To combat this, I will use another neural network dedicated to identifying a LEGO colour by the RGB value, using a dataset created by the 'ICT Institute'.\footnote{\url{https://ictinstitute.nl/legocolor-computer-vision-dataset/}}\bigskip
 
 I have decided to create my solution using python. I picked Python as many websites rank it first place for "Best language for Machine Learning"\footnote{One such of these websites is https://www.springboard.com/blog/data-science/best-language-for-machine-learning/}, but also as it is a language I am proficient in. Furthermore, it is an object oriented programming language, which is a great paradigm to use for a CNN as it features many loosely related types of layers, and also good since my solution will utilise a lot of classes, for things such as sets and LEGO but also for data structures like stacks or the hashtable. \bigskip
 
@@ -244,7 +244,7 @@ Identifying the LEGO requires the image being uploaded, and finds the RGB value 
 
 The LEGO storage aspect performs the task of retrieving stored LEGO data and set data. It deals with the altering of set information, and updating the stored set data to the new altered data. \bigskip
 
-\subsection{Main program flowchart}
+\paragraph*{Main program flowchart\\\\}
 
 The flowchart below illustrates the processes that take place when the main program is run. The main program makes use of a 'main program stack' and 'program states' to provide the interface for the user to utilise the functionalities of the program. The program states essentially represent the different 'screens' presented to the user as the program runs, and are implemented as subroutines. The functionalities of the program state includes displaying text to the user, getting input from the user, performing specific tasks, and flowing to other states, and all functionalities are implemented differently specific to the purpose of the state.
 
@@ -1260,8 +1260,6 @@ Finally, if is3D is True, then the matrix is returned. Otherwise, the matrix is 
 
 \paragraph*{Backwards propagation\\\\}
 
-The input is retrieved from the input attribute of the layer. The back-propagation is also designed to work with 3D matrices, so if the dE\_dO is 2D and is3D is True, then the dE\_dO is made 3D by adding it to an empty list. \bigskip
-
 The back-propagation of a ReLU works by multiplying values of the dE\_dO by 0.01 at the same positions where they were done so to the input, to find the dE\_dI. For instance, following on from the example in the forward propagation, take the following matrix of dE\_dO
 \begin{center}
     $ \begin{bmatrix}
@@ -1280,9 +1278,31 @@ Then assuming the first matrix from the example in the forwards propagation is t
 \end{center}
 since in the input it is the 3rd number on the first and second row, and the 2nd number on the last row which has changed, so the numbers in these positions in the dE\_dO are also multiplied by 0.01 to get the dE\_dI. \bigskip
 
-This is implemented in my solution by first creating a temporary matrix based off of the input matrix. For every value in the input matrix, if it is positive then a value of 1 is put into this position in the temp matrix. Otherwise, if it is negative, then a value of 0.01 is put in the temp matrix. What results is a matrix that has a 1 where the input matrix would have a positive number, and a 0.01 where the input matrix would have a negative number. Finally, the dE\_dI is found by computing the element-wise product of this temp matrix and the dE\_dO matrix, using mm.hadamard. \bigskip
+The input is retrieved from the input attribute of the layer. The back-propagation method is also designed to work with 3D matrices, so if the dE\_dO is 2D and is3D is True, then the dE\_dO is made 3D by adding it to an empty list. \bigskip
 
-If is3D is True, then the dE\_dI is returned. Otherwise, the dE\_dI is made 2D by getting the first and only item from the matrix. This is retuned.
+Next, a temporary matrix is created based off of the input matrix. For every value in the input matrix, if it is positive then a value of 1 is put into this position in the temp matrix. Otherwise, if it is negative, then a value of 0.01 is put in the temp matrix. What results is a matrix that has a 1 where the input matrix would have a positive number, and a 0.01 where the input matrix would have a negative number. Finally, the dE\_dI is found by computing the element-wise product of this temp matrix and the dE\_dO matrix, using mm.hadamard. \bigskip
+
+If is3D is True, then the dE\_dI is returned. Otherwise, the dE\_dI is made 2D by getting the first and only item from the matrix. This is returned.
+
+\subsection{Test 1- XOR}
+
+At this stage, to test the hidden and ReLU layers, I trained a neural network that has only hidden and ReLU layers to take in an two numbers, both either a 0 or 1, and output a 1 or 0, essentially performing an XOR operation on the two inputs. \bigskip
+
+The dataset for this is simple. The training data is a list containing all possible inputs of the XOR function, and the training results is a list containing the labels of the data, the outputs of the XOR. The label of the first item of the results corresponds to the first item of the data, the second label corresponds to the second piece of data, etc. \bigskip
+
+The architecture of the neural network created for this task consists of a hidden layer of 2 neurons, to take in the two input numbers, a ReLU layer, a hidden layer of 10 neurons, a ReLU layer, a hidden layer of 10 neurons, a ReLU layer, and finally a hidden layer of 1 neuron to output the single number result. \bigskip
+
+\begin{figure}[H]
+  \makebox[\textwidth][c]{\includegraphics[width=17cm]{Images/XORNN.drawio.png}}%
+\end{figure}
+\bigskip
+
+Because this task is so simple, the neural network can be made very small and simple, and training is fast so many epochs can be trained over. Thus, I trained the neural network on the training data and training results, at 10,000 epochs, batch size of 1, and learning rate of 0.001. \bigskip
+
+I then tested the neural network, passing in the inputs of an XOR and comparing the results to the expected results of an XOR. I re-initialised and re-trained the neural network like this multiple times, to see how it performed on each time. Generally the results were good, equal to 0 or 1 respectively to an extremely close approximation. Adding a softmax layer to the end would allow it to classify images between either 0 or 1, and would undoubtedly yield a near perfect accuracy. However, there was a glaring issue: many of the trainings resulted in very poor results, where it would only output values equal to 0 to an extremely close approximation. After much research, I had determined that the issue was a result of the 'dying ReLU problem'. This is a problem where a neural network outputs only 0s. I found that a solution to this problem is implementing a leaky ReLU instead of a normal ReLU. Prior to this test, I had implemented a normal ReLU, which replaces negative values with a zero, so tweaked it to be a leaky ReLU which instead replaced negative values with the value multiplied by 0.01. Furthermore, I implemented Xavier initialisation for the hidden layers to ensure the best chance of convergence to the desired results and further prevent the risk of dying neurons in the neural network over training. \bigskip
+
+Making these two fixes to the layers eliminated the dying ReLU problem and improved my neural network significantly.
+
 
 \subsection{Softmax class}
 
@@ -1341,16 +1361,210 @@ This formula makes the back propagation a lot easier to implement. The output of
 
 The mm.identity function is used, with the length of the output matrix passed in as an argument, to create an identity matrix that is also of size n x n. A transposed M matrix is made using the mm.transpose function on M, and this is subtracted from the identity matrix using mm.submatrix to create a temp matrix. After this, the mm.hadamard function is used to find the element-wise product of the temp matrix with the M matrix, and finally mm.prod is used to find the product of this with the dE\_dO matrix. What is left is the dE\_dI, which is returned.
 
+\subsection{Test 2: MNIST}
+
+The MNIST dataset is a dataset of handwritten digits, all labelled, to be used for training a neural network to recognise the digits from the images. \bigskip
+
+I downloaded a file of the dataset data as comma seperated values, with each pixel represented as it's RGB value so that I would not need to do this pre-processing myself. I created an MNISTproc function to fully process this data to be trained with by my neural network, to store the data for each image in a training data list, and for the corresponding label of the image to be stored in a training results list. The training data is normalised in this processing, by dividing all values by 255 so that every item has a value between only 0 and 1. This processing of the data takes very long given there are 60000 images, so at the end of the processing I stored these two  lists in a text file. They are retrieved by a retProc function, that simply reads the lists from the text file that stores them. This still takes long to finish, but is a lot quicker than processing the data every time. Upon retrieving the lists of data and results, the lists are split so that the first 50000 images could be used for training and the last 10000 for testing. \bigskip
+
+Each image is 28 by 28 pixels, resulting in 784 pixels to be taken in as input, and classifies images between 10 different digits, so outputs 10 numbers. Thus, the neural network begins with a hidden layer of 784 neurons and ends with a softmax activation layer followed by a hidden layer of 10 neurons to produce the output. As for the rest of the layers between them, I experimented with multiple different architectures and different values of learning rate, epochs and batch sizes. At the end of training I would test the neural network with an MNIST\_TEST function, which tests the neural network on every item in the testing data and finds it's percentage accuracy. Every neural network attempt resulted in poor results. \bigskip
+
+However, after many attempts, I was able to create a neural network that worked. It begins with a hidden layer of 784 neurons, a ReLU layer, a hidden layer of 10 neurons, a ReLU layer, a softmax layer and a hidden layer of 10 neurons. This is an extremely simply architecture; prior attempts involved much larger and more complicated neural network, which I assumed would be necessary for the task. I trained the data on 100 epochs, which is a lot more than I expected I would need, a batch size of 1, and a learning rate of 0.01, with only the first 1000 images from the dataset used instead of the whole 50000. \bigskip
+
+\begin{figure}[H]
+  \makebox[\textwidth][c]{\includegraphics[width=17cm]{Images/MNIST.drawio.png}}%
+\end{figure}
+\bigskip
+
+This made me realise the importance of choosing the optimal architecture and best values for hyper-parameters when training a neural network. I am limited in my computational resources and time to train a neural network, so the best solution is one that balances both training time and performance. The neural network created, despite being smaller and more simple than I expected, yielded a accuracy of 86.22\%. 
+
 \subsection{Convolutional class}
 
 The Convolutional class is a class which inherits from the Layers class, used to implement a convolutional layer. The purpose of the convolutional layer is to create feature maps of the image, which leads to better image recognition. Feature maps are created using a kernel to slide over the image, in a process known as a convolution. Performing a convolution is implemented in my solution using the mm.convolve function.
 
 \paragraph*{Convolve function\\\\}
 
-The mm.convolve function takes in
+The mm.convolve function takes in the matrix and kernel as input. It also may take in an input to set the convolution option from 'valid' to 'full', otherwise the convolution is defaulted as a valid convolution. \bigskip
+
+The function begins by getting the dimensions of the matrix and of the kernel, using the mm.dim function. \bigskip
+
+If the convolution option is set to full, then a full convolution must be performed. A valid convolution involves sliding the kernel over the image starting with the top left item of the kernel on the top left item of the matrix, and the kernel is slid such that the entire kernel is always overlapping the matrix. A full convolution, on the other hand, begins with the bottom right item of the kernel on the top left item of the matrix, and is slid such that a part of -but not necessarily the whole- of the kernel is always overlapping the matrix. \bigskip
+
+The full convolution and valid convolution can be implemented using the same algorithm, that of a valid convolution. To perform a full convolution, the matrix can simply be given zero padding on the edges. Thus, if the option is 'full', then the function adds zero padding to the edges of the input matrix, the amount of which is calculated such that the number of rows of the matrix are now ((rows of matrix) + 2(rows of kernel) - 2), and like wise for the new number of columns. \bigskip
+
+Next, it begins the convolution. An empty list is created for the output matrix. All of the positions that the top left corner of the kernel can be placed onto the matrix exist where the first ((rows of matrix) - (rows of kernel) + 1) rows and first ((columns of matrix) - (columns of kernel) + 1) columns of the matrix overlap. These positions are accessed using a nested for loop.
+\bigskip
+
+For each row in range ((rows of matrix) - (rows of kernel) + 1), an empty list is created for the row of the output. Then, for each column in range ((columns of matrix) - (columns of kernel) + 1), the component of the matrix that has a top left item at this row and column, and has dimensions equal to the dimensions of the kernel, is found. This subspace of the matrix, the area over which the kernel overlaps the matrix, undergoes an element-wise multiplication with the kernel, and every value from this multiplication is summed together and appended to the output row list. After every column in the range has been cycled through, the output row list is appended to the output matrix list. After all of the rows in the range have been looped through, the convolution is complete, and the output matrix is returned.
+
+\paragraph*{Specialised attributes\\\\}
+
+The convolutional layer has attributes of input depth, output depth, input size, kernel size, the kernels themselves and the biases. The kernels and biases are initialised for the layer when it is added to a NeuralNetwork with the addLayer method, with the dimensions made in accordance to the size and depth of the kernels. The biases are initialised with values 0.01, and the kernel's values are initialised to be a random following a Gaussian distribution of mean 0 and variance 0.01. \bigskip
+
+
+The convolutional layer takes in 3D input, a list of 2D matrices, as input. The number of 2D matrices in the list is referred to as the depth of the input. The size of the input refers to the dimensions of one of these 2D matrices, and the size of the kernels is the dimension required for the kernel. The output depth is how many 2D matrices should be output. The depth of the biases is equal to the output depth. The kernels is a list of lists, where every list inside contains kernels. The number of kernels in each list is equal to the input depth, and the number of these lists is equal to the output depth. 
 
 \paragraph*{Forward propagation\\\\}
+
+The goal of the forward propagation is to use the kernels and biases, the parameters of the convolutional layer, to turn the input into an output. Every matrix contained in the output is a feature map created from performing convolutions. To create the first of these feature maps, the first list in the kernels is used. Every kernel is this list undergoes a convolution with a matrix from the input using mm.convolve, such that the first kernel from the list is convoluted with the first matrix in the in the input, the second kernel from the list is convoluted with the second matrix in the input, etc. The sum of all of these is found, and added to the first item in the list of biases. What remains is the first matrix of the output. \bigskip
+
+The forward propagation method of the Convolutional class implements this. First, the input is stored to the input attribute of the class, as it will be needed for back-propagation. Next, an empty output list is created, which will contain all of the output matrices. For an index in range of the output depth, an output matrix is created. A temp matrix is made equal to the bias matrix at the index of the biases attribute. Next, the input is zipped with the list of kernels at the index from the kernels attribute. This pairs up the input matrices and the kernels in this kernel list. A lambda function is mapped to every item in this list of pairs to apply the mm.convolve function on every pair item, taking the input matrix as the input and the kernel matrix as the kernel. This results in a list of feature maps. This list is looped through to add every one of these feature maps to the temp matrix using mm.summatrix, and the remaining matrix is appended to the output list. \bigskip
+
+Finally, once every output matrix has been added to the output list, the output list is returned.
+
 \paragraph*{Backwards propagation\\\\}
+
+The backwards propagation involves updating the kernels, updating the biases, and finding the dE\_dI. Updating the kernels and biases involves finding the dE\_dK and dE\_dB. These can be found using their respective formulas.\footnote{These too were derived by The Independent Code in the following video: \url{https://www.youtube.com/watch?v=Lakz2MoHy6o}}\bigskip
+
+The dE\_dK is found with the formula
+\begin{equation*}
+\frac{\partial E}{\partial K_{ij}} = X_{j} \star \frac{\partial E}{\partial Y_{i}}
+\end{equation*}
+
+This essentially means that the nth list of matrices in the dE\_dK is found by finding the convolutions of every matrix from the input of the forward propagation with the nth matrix of the dE\_dO. Each of the resulting feature maps is an item in the nth list of matrices of the dE\_dK. \bigskip
+
+This is implemented in the code by first creating an empty dE\_dK list. Next, for an index in the range of the output depth, the dE\_dO matrix is gotten, at the index position in the dE\_dO. This is put into a list and the list is multiplied by the output depth, to get a list of size output depth where every item is the dE\_dO matrix. This list is zipped with the input from the input attribute, to pair up every input matrix with the dE\_dO matrix. A lambda function is mapped to all of these, which uses the mm.convolve funtion to find the convolution of every pair. This results in a list of feature maps. This is appended to the dE\_dK list. \bigskip
+
+The dE\_dB is simply the dE\_dO. \bigskip
+
+The dE\_dI can be found with the formula 
+\begin{equation*}
+    \frac{\partial E}{\partial X_{j}} = \sum_{i=1}^{n} \frac{\partial E}{\partial Y_{i}} \: \ast_{full}\: K_{ij}
+\end{equation*}
+However, implementing this formula in the code as it is was very difficult, so I derived my own method to implement the formula, using the transpose of the kernels matrix instead \bigskip
+
+The transpose of the kernels matrix is found using the mm.transpose function., and create an empty list for the dE\_dI. Next, for an index in the range of the input depth, I found the list of matrices at the index position of the transposed kernels. I zipped this with the dE\_dO, and using a map and lambda function, aplied a \textit{full} convolution to all of the pairs in the zip list. The sum of all of these is found using mm.summatrix by looping through all matrices in the list, and finally the resulting matrix is appended onto the dE\_dO list. \bigskip
+
+Finally, the biases are updated by subtracting the dE\_dB scaled by the rate. The same is done for the kernels using the dE\_dK, and the dE\_dI is returned.
+
+\subsection{MaxPooling class}
+
+The MaxPooling class is a class which inherits from the Layers class, used to implement a max-pooling layer. The layer takes in a 3D matrix, a list of 2D matrices. The purpose of the layer is to reduce the dimensionality of the matrices in the input, to reduce the amount of computations needed to handle it by the neural network. It does this by utlising the mm.pool function, selecting the 'max' option to perform a max pool.
+
+\paragraph*{Pool function\\\\}
+
+The pool function reduces the dimensionality of an image. It takes in the matrix as input, the size and stride of the kernel used in the pooling, and the mode of the pool. The mode can be max, min, or mean, to perform max-pooling, min-pooling and average-pooling respectively. \bigskip
+
+The function begins by finding the dimensions of the input matrix with mm.dim, and creates an empty list to hold the output matrix. It also creates an empty list to hold the indices of the max 
+pixels if the max-pool mode is selected, since these indices are needed by the max-pooling layer during back-propagation. \bigskip
+
+The function essentially works by getting all of the positions where the top left corner of the kernel can be placed onto the matrix while fully contained by it, placing the kernel here, taking all of the values covered by the kernel, and using these to find a single value depending on the selected mode which becomes an entry in the output matrix. \bigskip
+
+The first ((matrix number of rows) - (kernels number of rows) + 1) rows, at intervals equal to the stride, represent the rows at which the top left corner of the kernel can be placed. The same goes for the columns. Thus, the intersection of these rows and columns represent all the positions to place the top left corner of the kernel. The function uses a nested 'for' statement to access these positions. \bigskip
+
+For a row index in range 0 to ((matrix number of rows) - (kernels number of rows) + 1), at steps equal to the stride, an empty row list is created, and another for loop is used to get the positions. For a column index in range 0 to ((matrix number of columns) - (kernels number of columns) + 1), at steps equal to the stride, an empty temp list is created and the kernel is placed with it's top corner at the position determined by the row index and column index. The values of the matrix that the kernel overlaps are placed into the temp matrix. \bigskip
+
+What happens next depends on the mode. If the mode is 'max', then the maximum value of the temp list is taken and appended to the rows list. The index position of this max value from the matrix is determined, and added to the indices list. If the mode is 'min', then the minimum value of the temp list is taken and appended to the rows list. Otherwise, if the mode is 'mean', the average of the temp list is found and appended to the rows list. \bigskip
+
+Once all the columns in the range are looped through, the rows list is appended to the output list. Finally, once all of the rows in the range are looped through, the output list is returned, along with the indices list.
+
+\paragraph*{Specialised attributes\\\\}
+
+The pool layer has attributes for kernel size and stride, which are values the layer is instantiated with. It also has an input size attribute, and a max position attribute, which contains the indices of all of the maximum items identified during the pooling process for each of the input matrices. Both of these attributes are set during the forward propagation, to be used in the back-propagation.
+
+\paragraph*{Forward propagation\\\\}
+
+The forward propagation simply applies the pool function to all matrices in the input, and returns the output. \bigskip
+
+It begins by finding the dimensions of  an input matrix with mm.dim, and sets this value to the input size attribute. It also creates an empty list 'max\_pos' to store the list of indices of maximum items identified in the pooling for each of the input matrices. For each matrix in the input, the matrix is pooled with the mm.pool function, with the mode as 'max'. This returns the result of the pool and the list of indices of max item positions. The result is appended to the output list, and the max items indices list is appended to the max\_pos list. \bigskip
+
+Finally, the max position attribute is set as the max\_pos list, to be used in back-propagation, and the output matrix is returned. 
+
+\paragraph*{Backwards propagation\\\\}
+
+The back-propagation finds the dE\_dI of the layer. In forwards propagation, the max items of the matrices in an area determined by the kernel size/stride is found, as well as the positions of these items, and the items are made into a new smaller matrix. The goal of backwards propagation is to turn the dE\_dO, which has the dimensions of the output matrix in forwards propagation, into the dE\_dI which has the dimensions of the input matrix in forwards propagation. In other words, where the forward pass decreases dimensionality, the backward pass restores this larger dimensionality. The existing items in the dE\_dO are all placed into the dE\_dI, at the maximum positions found in the forward propagation, and every other item in the bigger matrix is just 0. \bigskip
+
+To implement this, the method begins by creating an empty list for the dE\_dI. For a index in the range of the number of the dE\_dO depth, a matrix of 0s is made, with the same dimensions as the input size attribute, using mm.makematrix. The list of max indices is gotten from the maximum positions attribute at the index of the loop. Next, the dE\_dO matrix at this index is gotten and flattened into a temp list. The nth item in the max indices list is the index corresponding to the position of the nth item of the temp list to be placed in the matrix of 0s. Thus, the first item in the temp list is placed into the matrix of 0s at the position of the indices from the first item in the max indices list, the second item of the temp list is places at the position of the indices of the second item in the max indices list, and so on, until all of the items in the temp list have been added to the matrix at their respective positions. \bigskip
+
+This matrix is appended to the dE\_dI list, and the process repeats until it has been done for all matrices in the dE\_dO. Finally, the  the dE\_dI is returned.
+
+\subsection{Test 3: MNIST convolutional}
+
+After having created convolutional and pooling layers, I decided to test them on the same MNIST dataset as before, and compare the results to the neural network without the convolutional layer. \bigskip
+
+The data used is the same processed data retrieved from a text file as used in Test 2. \bigskip
+
+As with the previous test, creating a working neural network for this dataset took a great number of attempts, and also like the previous test, the solution created was a very simple and small one. Many CNN architectures for MNIST or other simple classification makes use of multiple convolutional and pooling layers, as well as many hidden layers. This would not work for me, as again my computational resources and time for training is limited, and so I would have to find something that would work for me balancing performance and training time. \bigskip
+
+This was achieved by a neural network that has a convolutional layer that takes in a 28x28 matrix of the image and applies a convolution with a 5x5 kernels to the image to turn it into 3 images all 24x24 in size. This is passed through a ReLU. The result is passed into a max-pooling layer of a 2x2 kernel with strides of 2, effectively halving the dimensions of matrices, so that the data goes from 3x24x24 to 3x12x12. Multiplying 3 by 12 and 12 gives 432, so the next layer is a hidden layer of 432 neurons. This is followed by a ReLU layer, then a softmax, and finally a hidden layer of 10 neurons to output the classification. \bigskip
+
+\begin{figure}[H]
+  \makebox[\textwidth][c]{\includegraphics[width=18cm]{Images/MNISTCONV.drawio.png}}%
+\end{figure}
+\bigskip
+
+This was trained with a batch size of 1 and learning rate of 0.1, over 10 epochs with 1024 of the images from the dataset used. Despite the neural network appearing small and simple, and using a tiny fraction of the whole training data to train on, in testing it yielded an astounding percentage accuracy of 95.06\%.
+
+\subsection{Image augmentation}
+
+
+With the neural network and all of it's layers created, it is time to begin training the neural networks for their purpose in the program. \bigskip
+
+However, to train the neural network to recognise the element number of LEGO pieces by their shape from an image, it is not enough to just train it on the raw training data of computer rendered images and then expect it to work for images from the real world. The images of the dataset all share common characteristics, such as the colours, position of the LEGO item in the image, the size of the item, texture, etc. The neural network may be fitting itself to these properties. In images of real LEGO pieces, the size, position, sharpness, brightness and whatnot will all be different in every image, so passing these into the neural network trained on the raw dataset will yield poor results. \bigskip
+
+Thus, to prevent the neural network from fitting to these characteristics instead of the shape of the LEGO item as it is expected to, it is important that the training data varies these characteristics in it's images. This, described in the research section of the analysis, is known as domain randomisation, and involves randomly tweaking the different aspects of the image to prevent the machine learning model from over-fitting to them. \bigskip
+
+To achieve this, I created an Augmentation class. The class contains static methods that allow it to take an image and tweak one of these characteristics of the image, such as the size of the LEGO item in the image or brightness of the image. It also contains a static method 'augment' which takes an image and applies randomly some of these augmentations, by random amounts of extremeness, and returns the new randomly augmented image. This is used in every item of the dataset, and ensures that every image varies in characteristics to be more like the images that will actually be passed into the neural network by the user, improving performance. \bigskip
+
+The Augmentation class utilises the PIL library to perform changes to the image. The static methods of the class are represented in the class definition below. \bigskip
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+Method     & Input/Output                                                                                & Description                                                                                                                                                                                                                                                                                                                                                                       \\ \hline
+augment    & \begin{tabular}[c]{@{}l@{}}Input: image, invert\\ = False\\ Output: new image\end{tabular} & \begin{tabular}[c]{@{}l@{}}Applies a random geometric augmentation from 3 options:\\ rot, crop, or zoom. Next, it applies a random colour augme-\\ ntation from 2 options: contrast or brightness. It then\\ applies a sharpness augmentation, and finally if invert is\\ True, then applies an invert augmentation on the image.\\ Returns this new augmented image\end{tabular} \\ \hline
+rot        & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: new image\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}Returns the image randomly rotated between 0 and 360\\ degrees\end{tabular}                                                                                                                                                                                                                                                                            \\ \hline
+crop       & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: new image\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}Crops the image such that the position of the item in the \\ LEGO is off-centred, randomly. Returns new image\end{tabular}                                                                                                                                                                                                                             \\ \hline
+zoom       & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: new image\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}Zooms into the LEGO by a random amount, effectively\\ resizing the item in the image randomly. Returns this new\\ image\end{tabular}                                                                                                                                                                                                                   \\ \hline
+contrast   & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: new image\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}Returns the image with the contrast changed by a random\\ amount\end{tabular}                                                                                                                                                                                                                                                                          \\ \hline
+brightness & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: new image\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}Returns the image with the brightness changed by a random\\ amount\end{tabular}                                                                                                                                                                                                                                                                        \\ \hline
+sharpness  & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: new image\end{tabular}                   & \begin{tabular}[c]{@{}l@{}}Returns the image with the sharpness changed by a random\\ amount\end{tabular}                                                                                                                                                                                                                                                                         \\ \hline
+invert     & \begin{tabular}[c]{@{}l@{}}Input: image\\ Output: new image\end{tabular}                   & Returns the image with the colours of the image inverted                                                                                                                                                                                                                                                                                                                          \\ \hline
+aspect     & \begin{tabular}[c]{@{}l@{}}Input: image, mode\\ = 'Min'\\ Output: new image\end{tabular}   & \begin{tabular}[c]{@{}l@{}}Resizes the image to be of 1:1 aspect ratio, by cropping the\\ image to be either smaller or larger\end{tabular}                                                                                                                                                                                                                                       \\ \hline
+\end{tabular}
+\end{table}
+\bigskip
+
+The crop and zoom augmentations assume that the LEGO item is centred and makes up roughly 60\% of the width and height of the image, as is the case with the LEGO in my dataset. Thus, it applies it's transformations in such a way to ensure that the whole of the LEGO item is still contained in the image. \bigskip
+
+The aspect method is not included in the augment method, but is still used multiple times throughout the program. It takes in the image as well as a mode, defaulted at min. If mode is min, then the image is resized to 1:1 by the smaller side of the image. The image is cropped to be smaller, to be of dimensions smaller side x smaller side. On the other hand, if the option is set to max, then the image is cropped to be larger, to be of dimensions larger side x larger side. This adds black edges to the image to make the size of the sides of the image equal.
+
+\subsection{Colour neural network}
+
+The colour neural network is used in the main program by the getColour function. The neural network is fed a normalised RGB value, and outputs a matrix of predictions used in conjunction with the colour list to classify the LEGO colour from the RGB value, from 14 different colours. \bigskip
+
+As mentioned in the proposed section, this utilises a dataset created by the 'ICT institute' which contains RGB values taken from images of LEGO pieces, and the LEGO colour of this piece. These are stored in a .csv file, and I created a colour\_proc function to process the data in this file and return lists for the data and results (labels of the data), as well as a colour list which contains all of the colours, in the order that the neural network will output its predictions in the output matrix. This is the same colour list as is used in the main program, and is used in conjunction with the output matrix of the colour neural network to get the classification. \bigskip
+
+The neural network consists of a hidden layer of 3 neurons, to take the three values of RGB as input, a ReLU layer, a hidden layer of 100 neurons, a ReLU layer, a softmax layer and a hidden layer of 14 neurons for the predictions of the 14 colours. The neural network is trained on the dataset for 50 epochs at a learning rate of 0.1 and batch size of 1. The accuracy of the neural network is FIJFUAFBAEVFA VFAGFAGFAHGF AF ASFSGF:ESAGF"OAGFOSAUEF which I am happy with. \bigskip
+
+\begin{figure}[H]
+  \makebox[\textwidth][c]{\includegraphics[width=17cm]{Images/COLOURNN.drawio.png}}%
+\end{figure}
+
+\subsection{Element neural network}
+
+The element neural network is used in the main program by the getElem function. The neural network is fed the image after it undergoes processing and normalisation as input, and it outputs a matrix of predictions. This is used in conjunction with an element list to classify the LEGO element number of the LEGO item in the image, from 10 different values. \bigskip
+
+The data used to train this neural network comes from a Kaggle dataset as specified in the proposed solution. The dataset contains 40,000 images of 50 different LEGO pieces, rendered by a computer. Training a neural network on all of this data would require a large complicated architecture, and would be too much for me to pull off with my resources and time. Therefore, I selected 10 LEGO items of these 50 to base my neural network off of. These were selected based on the most common LEGO elements, as well as being quite different from each other, since a lot of elements look the same from certain angles, which would make recognition harder for the neural network. For all of these 10 elements, I hand selected 350 of the best images of the element from the dataset. Some items are extremely difficult to identify, even for a human, from certain angles, so these were excluded. Furthermore, it is unlikely for an image to be of a LEGO item upside down, and the user is prompted to use nice angles anyways, so I only picked these nice items for the neural network to make it's training easier. \bigskip
+
+The images are stored in a file which is read from by the procLego function. The function has empty lists for the training data, training results, testing data and testing results. It also has a count, set at 0. The images in the file are all ordered already by their element. For every image in the file, the image is opened using PIL and augmented to introduce domain randomisation using the augment function. The invert is kept at False, since inverting the image completely threw off the neural network training and resulted in a neural network that learnt terribly slow. Thus, instead of getting the neural network to work with images of white background, I decided the best roundabout solution would be to process any images input to the neural network by the user to have a black background, as is explained in the getElem paragraph of the subroutines section. Once the image from the dataset is augmented, it is then resized to be of size 64x64. \bigskip
+
+The label for the data is then created by creating a matrix of 10 items set at 0, and making one of these items 1 at the position that represents the element. The image is turned into data, normalised by dividing all items by 255 so that every item is between 0 and 1, and the resulting data is made into a matrix. If the count is more than or equal to 300, the image matrix is added to the testing data and the label matrix to the testing results, otherwise the image matrix is added to the training data and the label matrix to the training results. If the count is equal to 350, it is reset to 0. Since the LEGO are already ordered by element, this process separates the 350 items of an element such that 300 of the items are trained with and 50 of the items are tested with. The function returns the training data, training results, testing data and testing results. \bigskip
+
+The training data/results are used by the neural network to train. Despite reducing the complexity of the data by handpicking elements and their images, the domain randomisation of the images increases the complexity of the data by a significant amount. However, the domain randomisation is necessary for the neural network to function on actual images of LEGO. Thus, since the task is complex, a more complex neural network is needed than was used with the MNIST data. Both MNIST neural networks taught me to not waste days at a time trying to train a complex neural network and instead stick to more simple architectures, which can yield decent result for a fraction of the time and resources. This was harder to achieve with the element neural network given how much more complicated the task is than just hand-written digits. \bigskip
+
+The neural network consists of a convolutional layer which takes in a single matrix that is 64x64, and returns 8 matrices that are 62x62 by performing a convolution on the input matrix with kernels of size 3x3. This layer is followed by a ReLU activation layer, and then a max-pooling layer of kernel size 2x2 and stride 2 to effectively halve the dimensions of the input matrices, turning it from 8x62x62 to 8x31x31. The results of 8 multiplied by 31 and 31 is 7688, so the next layer is a hidden layer of 7688 neurons, followed by a ReLU layer and then a softmax layer. Finally, a hidden layer of 10 neurons outputs the matrix of predictions. \bigskip
+
+\begin{figure}[H]
+  \makebox[\textwidth][c]{\includegraphics[width=19cm]{Images/ELEMNN.drawio.png}}%
+\end{figure}
+\bigskip
+
+The procLego function is called 4 times to combine 4 sets of training and results data. Despite using the same images from the dataset, the data returned by each of these calls is different because of the domain randomisation, which randomly changes each image. This effectively allows for the neural network to be trained on 12000 different images instead of 3000. A batch size of 1 is used, with a learning rate of 1 to allow for fast convergence, over 10 epochs. This training takes a couple of days, and brings the percentage accuracy to about 50\%. The percentage accuracy is found by testing the neural network on the 4 sets of testing data, which is 2000 images. \bigskip
+
+The resulting neural network is then trained further, with a batch size of 1, but this time a learning rate of 0.1 to fine tune the learning at this stage a bit more, over 5 epochs. This brings the percentage accuracy up to J UAEGLAEAGVEFGA, which is not as large as I had hoped but probably expected given the complexity of the task- especially given my time and resources limits. Trying to find an optimal architecture/values for the hyper-parameters took over a month of training, over many different attempts, so I can settle with the final percentage accuracy. \bigskip
+
+Given more time to experiment and train however, this percentage can most definitely be boosted.
 
 
 \end{document} 
