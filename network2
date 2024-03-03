@@ -1,8 +1,7 @@
 from matrices import mm
 from layers import *
-import time
 
-class NeuralNetwork2:
+class NeuralNetwork:
     savedNetworks = []
     file = open("savedNetwork.txt", "r")
     for i in file:
@@ -15,16 +14,16 @@ class NeuralNetwork2:
             print(item, end  = ". ")
             
     @staticmethod
-    def upload_saved(name, newname=None):
-        if name not in NeuralNetwork2.savedNetworks:
+    def retrieve_saved(name, newname=None):
+        if name not in NeuralNetwork.savedNetworks:
             return f"Error: '{name}' does not exist."
         else:
-            index = NeuralNetwork2.savedNetworks.index(name)
-            cont = eval(NeuralNetwork2.savedNetworks[index+1])
+            index = NeuralNetwork.savedNetworks.index(name)
+            cont = eval(NeuralNetwork.savedNetworks[index+1])
             if newname==None:
-                uploadedNN = NeuralNetwork2(name)
+                uploadedNN = NeuralNetwork(name)
             else:
-                uploadedNN = NeuralNetwork2(newname)
+                uploadedNN = NeuralNetwork(newname)
             for layer in cont:
                 uploadedNN.addLayer(layer)
             return uploadedNN
@@ -98,34 +97,10 @@ class NeuralNetwork2:
             dE_dO = layer.backward(dE_dO, rate)
         return dE_dO
     
-    
-    def learn(self, inp, val_true, rate):
-        #inp = mm.copy(inp)
-        output = self.propagate_forwards(inp)
-        #error = mm.msError(output, val_true)
-        dE_dO = mm.dE_dO(output, val_true)
-        self.propagate_backwards(dE_dO, rate)
-       
-    def training(self, data, results, rate, cycles):
-        for cycle in range(cycles):
-            nums = mm.testrand(len(data))
-            for i in nums:  
-                self.learn(data[i], results[i], rate)
-            print(cycle+1)
                 
-    def train2(self, data, results, rate, cycles, batch_size):
-        rx, ry = mm.dim(results[0])
-        err = 0
-        errchange = 0
-        s = time.time()
-        n = 0   
+    def train(self, data, results, rate, cycles, batch_size):
+        rx, ry = mm.dim(results[0])  
         for cycle in range(cycles):
-            '''
-            if (cycle+1)%20==0:
-                rate*=0.75 
-               
-            if cycle %10==0:
-                rate*=0.5''' 
             error = mm.makematrix(rx, ry, 0)
             shuffled_nums = mm.testrand(len(data))
             c = 0
@@ -137,29 +112,14 @@ class NeuralNetwork2:
                 dE_dO = mm.dE_dO(outp, results[i])
                 temp = mm.summatrix(temp, dE_dO)
                 if c%batch_size == 0:
-                    #print(sum([i[0] for i in error]))
-                    #error = mm.makematrix(rx, ry, 0)
                     self.propagate_backwards(mm.scalematrix(temp, (1/batch_size)), rate)
                     temp = mm.makematrix(rx, ry, 0)
-                '''
-                if c%100==0:
-                    #rate*=0.4
-                    n+=1
-                    e = time.time()
-                    print(e-s, (n*10000)/(1000*cycles))
-                    s = e
-                ''' 
             print(cycle+1, end=", ")
-            '''
-            errchange = tmp -err
-            err = tmp
-            if errchange > 10:
-                rate*=0.1'''
             print(sum([i[0] for i in error]))
             error = mm.makematrix(rx, ry, 0)
                 
     def saveNN(self):
-        if self.name in NeuralNetwork2.savedNetworks:
+        if self.name in NeuralNetwork.savedNetworks:
             print("Network of this name already exists.")
         else:
             allLayers = []
@@ -184,8 +144,8 @@ class NeuralNetwork2:
             file = open("savedNetwork.txt", "a")
             file.write(f"{self.name}\n{allLayers}\n")
             file.close()
-            NeuralNetwork2.savedNetworks.append(self.name)
-            NeuralNetwork2.savedNetworks.append(str(allLayers))
+            NeuralNetwork.savedNetworks.append(self.name)
+            NeuralNetwork.savedNetworks.append(str(allLayers))
             
     def displayLayers(self):
         for layer in self.layers:
@@ -194,13 +154,13 @@ class NeuralNetwork2:
             if layer.getType() == "Hidden":
                 print(layer.getNeurons())
                 
-                print(layer.getWeights())
-                print(layer.getNLbiases())
+                #print(layer.getWeights())
+                #print(layer.getNLbiases())
                 
             if layer.getType() == "Convolutional":
-                print(layer.getKernels())
+                #print(layer.getKernels())
                 print(len(layer.getKernels()))
-                print(layer.getBiases())
+                #print(layer.getBiases())
                 
             if layer.getType() == "MaxPooling":
                 print(layer.getSize())
