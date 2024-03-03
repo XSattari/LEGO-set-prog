@@ -1,25 +1,18 @@
 class AllSets:
     def __init__(self):
         self.sets = []
-        #self.setNames = []
-
-    def isInSet(self, name):
-        return name in self.setNames
     
-    def getSet(self, name):
-        return self.sets[self.setNames.index(name)]
+    def getSet(self):
+        return self.sets
 
     def addSet(self, nset):
-        #self.setNames.append(nset.getName())
         self.sets.append(nset)
 
     def removeSet(self, nset):
-        self.setNames.remove(nset.getName())
         self.sets.remove(nset)
 
     def noOfSets(self):
         return len(self.sets)
-
 
 class Set:
     def __init__(self, name):
@@ -31,7 +24,7 @@ class Set:
     def getName(self):
         return self.name
     
-    def changeName(self, new):
+    def setName(self, new):
         self.name = new
 
     def addLego(self, lego):
@@ -52,9 +45,42 @@ class Set:
     def getHasRequired(self):
         return self.hasRequired
     
-    def setRequired(self, new):
+    def setHasRequired(self, new):
         self.hasRequired = new
-    
+
+    def getSortedSet(self):
+        if self.sort == 0:
+            return self.set
+        elif self.sort == 1:
+            return self.set[::-1]
+        elif self.sort == 2:
+            return sorted(self.set, key= lambda x: x.getElem())
+        elif self.sort == 3:
+            return sorted(self.set, key= lambda x: x.getElem(), reverse = True)
+        elif self.sort == 4:
+            return sorted(self.set, key= lambda x: x.getColour())
+        elif self.sort == 5:
+            return sorted(self.set, key= lambda x: x.getColour(), reverse = True)
+        elif self.sort == 6:
+            return sorted(self.set, key= lambda x: x.getLegoNumber())
+        elif self.sort == 7:
+            return sorted(self.set, key= lambda x: x.getLegoNumber(), reverse = True)
+        elif self.sort == 8:
+            return sorted(self.set, key= lambda x: x.getAmount())
+        elif self.sort == 9:
+            return sorted(self.set, key= lambda x: x.getAmount(), reverse = True)
+        elif self.sort == 10:
+            return sorted(self.set, key= lambda x: x.getRequired())
+        elif self.sort == 11:
+            return sorted(self.set, key= lambda x: x.getRequired(), reverse = True)
+        elif self.sort == 12:
+            return sorted(self.set, key= lambda x: x.getNeededToComplete())
+        else:
+            return sorted(self.set, key= lambda x: x.getNeededToComplete(), reverse = True)
+
+    def getSortName(self, num):
+        sortslist = ["Date added: Oldest to Newest", "Date added: Newest to Oldest", "Element Number: Low to High", "Element Number: High to Low", "Colour: A to Z", "Colour: Z to A", "LEGO Number: Low to High", "LEGO Number: High to Low", "Amount in set: Low to High", "Amount in set: High to Low", "Amount Required: Low to High", "Amount Required: High to Low", "Amount needed to complete: Low to High", "Amount needed to complete: High to Low"]
+        return sortslist[num]
 
 class Lego:
     def __init__(self, lego_number, number_hashtable):
@@ -90,3 +116,5 @@ class Lego:
     def setRequired(self, new):
         self.requiredAmount = new
 
+    def getNeededToComplete(self):
+        return 0 if self.amount >= self.requiredAmount else self.requiredAmount - self.amount
