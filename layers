@@ -1,6 +1,5 @@
 from matrices import mm
 import math
-import numpy as np
 
 class Layer:
     def __init__(self):
@@ -44,7 +43,6 @@ class Hidden(Layer):
         else:
             outp = mm.summatrix(mm.dotprod(self.weights, inp), self.NLbiases)
             self._input = mm.copy(inp)
-            #self._output = mm.copy(outp)
             return outp
     
     def backward(self, dE_dO, rate):
@@ -254,10 +252,4 @@ class MaxPooling(Layer):
     
     def getStride(self):
         return self.stride
-    
-'''
-NOTES: 
-- While neither the backpropagation method for the ReLU or Softmax classes utilise the "rate" parameter, it is still passed in during the backpropagation of all layers.
-Thus, it still needs to take it in even if it does nothing with it. Can I just change implementation so that only the Hidden layer gets it? Sure. Will I? No need. Easy roundabout.
-'''
     
