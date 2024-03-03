@@ -41,7 +41,7 @@ class Hidden(Layer):
         if self.weights == None:
             return inp
         else:
-            outp = mm.summatrix(mm.dotprod(self.weights, inp), self.NLbiases)
+            outp = mm.summatrix(mm.prod(self.weights, inp), self.NLbiases)
             self._input = mm.copy(inp)
             return outp
     
@@ -49,8 +49,8 @@ class Hidden(Layer):
         if self.weights == None:
             return dE_dO
         else:
-            dE_dW = mm.dotprod(dE_dO, mm.transpose(self._input))
-            dE_dI = mm.dotprod(mm.transpose(self.weights), dE_dO)
+            dE_dW = mm.prod(dE_dO, mm.transpose(self._input))
+            dE_dI = mm.prod(mm.transpose(self.weights), dE_dO)
             self.weights = mm.submatrix(self.weights, mm.scalematrix(dE_dW, rate))
             self.NLbiases = mm.submatrix(self.NLbiases, mm.scalematrix(dE_dO, rate))
             
@@ -140,7 +140,7 @@ class Softmax(Layer):
         #uses formula dE_dI = (M hadamard (I-M(transposed))). dE_dO
         matrix = [i*len(self._output) for i in self._output]
         temp = mm.submatrix(mm.identity(len(self._output)), mm.transpose(matrix))
-        dE_dI = mm.dotprod(mm.hadamard(matrix, temp), dE_dO)
+        dE_dI = mm.prod(mm.hadamard(matrix, temp), dE_dO)
         return dE_dI
     
     def getType(self):
