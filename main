@@ -1,14 +1,12 @@
-from NN2 import NeuralNetwork2
+from NN2 import NeuralNetwork
 import time
 import random
 from matrices import mm
 from augmentation import aug
 from layers import *
-#import matplotlib.pyplot as plt
-#import matplotlib.image as mpimg
-from PIL import Image, ImageEnhance
-from hashtable import Hashtable
+from hashtable import *
 import os
+from gettingimage import *
 # This main is used mostly for testing or prototyping, which is why it is a mess currently
 
 def timer():
@@ -18,7 +16,7 @@ def timer():
     print("Elapsed time: ", elapsed_time)
 #timer()
 
-def main():
+def main1():
     
     data = [[0, 0], [0, 1], [1, 0], [1, 1]]
     results = [[0], [1], [1], [0]]
@@ -33,7 +31,7 @@ def main():
     o8 = Hidden(10)
     o9 = ReLU()
     o10 = Hidden(1)
-    nt = NeuralNetwork2("MY_NN")
+    nt = NeuralNetwork("MY_NN")
     nt.addLayer(obj0)
     nt.addLayer(obj1)
     nt.addLayer(obj2)
@@ -66,7 +64,7 @@ def main2():
     data = [[0, 0], [0, 1], [1, 0], [1, 1]]
     results = [[0], [1], [1], [0]]
 
-    n = NeuralNetwork2("nut")
+    n = NeuralNetwork("nut")
     layers = [["Hidden", 2], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Hidden", 1]]
     for layer in layers:
         n.addLayer(layer)
@@ -107,22 +105,12 @@ def retProc(max=60000):
             data.append(eval(i))
         c+=1
 
-def getMax(lis):
-    mx = 0
-    c = 0
-    tmp = 0
-    for i in lis:
-        if i > mx:
-            mx = i
-            tmp = c
-        c+=1
-    return tmp
     
 
 def MNIST_TRAIN():
     train = retProc(1000)
 
-    mNetwork = NeuralNetwork2("MNIST3")
+    mNetwork = NeuralNetwork("MNIST3")
     #layers = [["Hidden", 784], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 10]]
     layers = [["Hidden", 784], ["ReLU"], ["Hidden", 10], ["ReLU"], ["Softmax"], ["Hidden", 10]]
 
@@ -140,27 +128,6 @@ def MNIST_TRAIN():
     mNetwork.saveNN()
     return data, results
 
-
-def MNIST_TEST(data, results, nn):
-
-    n = NeuralNetwork2.upload_saved(nn)
-
-    correct = 0
-    total = 0
-    for i in range(len(data)):    
-        outp = n.propagate_forwards(data[i])
-        res = [x[0] for x in results[i]]
-        tmp = [x[0] for x in outp]
-        pred = getMax(tmp)
-        tru = getMax(res)
-        total += 1
-        if pred == tru:
-            correct +=1
-        if total%100==0:
-            print(f"progress: {(total*100)/len(data)}% complete")    
-    
-    accuracy = (correct*100)/total
-    print(f"\nAccuracy of the neural network: {accuracy}%\n")
 
 
 def dispM(matrix):
@@ -244,7 +211,7 @@ plt.imshow(img)
 plt.show()
 '''
 
-def procLego(classes=17, aug_im=False):
+def procLego0(classes=17, aug_im=False):
     image_size = 64
     dataset = os.scandir("dataset")
     train_data = []
@@ -280,52 +247,6 @@ def procLego(classes=17, aug_im=False):
 
         c+=1
         if c==800:
-            item+=1
-            c=0
-            print(f"Data proc progress: {item*(100/classes)}%")
-
-        if item == classes:
-            break
-
-    print("Data retrieval complete.")
-    return train_data, train_res, test_data, test_res
-
-def procLego2(classes=10, aug_im=False):
-    image_size = 64
-    dataset = os.scandir("datasetv2")
-    train_data = []
-    train_res = []
-
-    test_data = []
-    test_res = []
-    c = 0
-    item = 0
-
-    for i in dataset:
-        img = Image.open("dataset\\" + i.name)
-        if aug_im:
-            img = aug.augment(img)
-        img.thumbnail((image_size, image_size))
-
-        res_matrix = [[[0]]*classes][0]
-        res_matrix[item] = [1]
-        temp_row = []
-        data_matrix = []
-        for i in img.getdata():
-            temp_row.append(i[0] / 255)
-            if len(temp_row) == image_size:
-                data_matrix.append(temp_row)
-                temp_row = []
-
-        if c >= 300:
-            test_data.append([data_matrix])
-            test_res.append(res_matrix)
-        else:
-            train_data.append([data_matrix])
-            train_res.append(res_matrix)
-
-        c+=1
-        if c==350:
             item+=1
             c=0
             print(f"Data proc progress: {item*(100/classes)}%")
@@ -376,7 +297,120 @@ def legproc():
     print("Data retrieval complete.")
     return train_data, train_res
 
-def colour_proc():
+def testingcolours():
+    x, y, lis = procColour()
+
+    red = get_rgb("Lego/green.jpg")
+    nn = NeuralNetwork.retrieve_saved("colour1")
+
+    clo = []
+    for i in red:
+        clo.append([i/255])
+
+    pred = nn.propagate_forwards(clo)
+    res = [x[0] for x in pred]
+
+    guess = lis[getMax(res)]
+
+    print(guess)
+
+
+#layers2 = [["Convolutional", 1, 8, (128, 128), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 8, 16, (63,63), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 16, 32, (30,30), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 6272], ["ReLU"], ["Hidden", 128], ["ReLU"], ["Softmax"], ["Hidden", 50]]
+
+def NN_TEST(data, results, nn):
+
+    nn = NeuralNetwork.retrieve_saved(nn)
+
+    correct = 0
+    total = 0
+    for i in range(len(data)):    
+        outp = nn.propagate_forwards(data[i])
+        res = [x[0] for x in results[i]]
+        tmp = [x[0] for x in outp]
+        pred = getMax(tmp)
+        tru = getMax(res)
+        total += 1
+        if pred == tru:
+            correct +=1
+        if total%100==0:
+            print(f"progress: {(total*100)/len(data)}% complete")    
+    
+    accuracy = (correct*100)/total
+    print(f"\nAccuracy of the neural network: {accuracy}%\n")
+
+def procLego(classes=10, aug_im=False):
+    image_size = 64
+    dataset = os.scandir("datasetv2")
+    train_data = []
+    train_res = []
+
+    test_data = []
+    test_res = []
+    c = 0
+    item = 0
+
+    for i in dataset:
+        img = Image.open("dataset\\" + i.name)
+        if aug_im:
+            img = aug.augment(img)
+        img.thumbnail((image_size, image_size))
+
+        res_matrix = [[[0]]*classes][0]
+        res_matrix[item] = [1]
+        temp_row = []
+        data_matrix = []
+        for i in img.getdata():
+            temp_row.append(i[0] / 255)
+            if len(temp_row) == image_size:
+                data_matrix.append(temp_row)
+                temp_row = []
+
+        if c >= 300:
+            test_data.append([data_matrix])
+            test_res.append(res_matrix)
+        else:
+            train_data.append([data_matrix])
+            train_res.append(res_matrix)
+
+        c+=1
+        if c==350:
+            item+=1
+            c=0
+            print(f"Data proc progress: {item*(100/classes)}%")
+
+        if item == classes:
+            break
+
+    print("Data retrieval complete.")
+    return train_data, train_res, test_data, test_res
+
+def createElemNN(name):
+    nn = NeuralNetwork(name)
+    layers = [["Convolutional", 1, 8, (64, 64), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 7688], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+    for layer in layers:
+        nn.addLayer(layer)
+    nn.saveNN()
+
+def trainElemNN(name, newname, rate, epochs, batch_size):
+    train_data = []
+    train_res = []
+    test_data = []
+    test_res = []
+
+    for i in range(4):
+        a, b, x, y = procLego(aug_im=True)
+        train_data += a
+        train_res += b
+        test_data += x
+        test_res += y
+
+    nn = NeuralNetwork.retrieve_saved(name, newname)
+    nn.train(train_data, train_res, rate, epochs, batch_size)
+    nn.saveNN()
+
+    NN_TEST(test_data, test_res, newname)
+
+def procColour():
     f = open("legocolor-basic.csv", "r")
     data = []
     results = []
@@ -397,206 +431,35 @@ def colour_proc():
 
     return data, results, existing_colours
 
-#layers2 = [["Convolutional", 1, 8, (128, 128), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 8, 16, (63,63), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Convolutional", 16, 32, (30,30), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 6272], ["ReLU"], ["Hidden", 128], ["ReLU"], ["Softmax"], ["Hidden", 50]]
-''' 
-nn = NeuralNetwork2("serendipity")
-layers2 = [["Convolutional", 1, 4, (64, 64), (3, 3)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 3844], ["ReLU"], ["Softmax"], ["Hidden", 10]]
-for layer in layers2:
-    nn.addLayer(layer)
-nn.saveNN()
-'''
+def createColourNN(name):
+    nn = NeuralNetwork(name)
+    layers = [["Hidden", 3], ["ReLU"], ["Hidden", 100], ["ReLU"], ["Softmax"], ["Hidden", 14]]
+    for layer in layers:
+        nn.addLayer(layer)
+    nn.saveNN()
 
- 
-'''
-for i in range(4):
-    train_data, train_res = procLego(aug_im=True)
-    nn.train2(train_data, train_res, 1, 10, 1)
-'''
-''' 
-newname = "relentlessness"
-train_data = []
-train_res = []
-test_data = []
-test_res = []
-
-for i in range(4):
-    a, b, x, y = procLego2(aug_im=True)
-    train_data += a
-    train_res += b
-    test_data += x
-    test_res += y
-
-nn = NeuralNetwork2.upload_saved("ethereal", newname)
-nn.train2(train_data, train_res, 1, 5, 1)
-nn.saveNN()
-
-MNIST_TEST(test_data, test_res, newname)
-'''
-''' 
-train_data, train_res = procLego()
-size = 5100
-nd = []
-nr = []
-x = mm.testrand(len(train_data))
-for i in range(size):
-    nd.append(train_data[x[i]])
-    nr.append(train_res[x[i]])
-
-
-MNIST_TEST(nd, nr, "indomitable_human_spirit")
-'''
-  
-#procLego(aug_im=True)
-
-def get_rgb(path):
-    img = Image.open(path)
-    img = aug.aspect(img)
-
-    newsize = 32
-    img.thumbnail((newsize, newsize))
-    img_c = img.getdata()
-
-    img = ImageEnhance.Color(img).enhance(0)
-    img_g = img.getdata()
-
-    pixels_g = []
-    for pixel in img_g:
-        pixels_g.append(pixel[0])
-
-    corner_pixels = [pixels_g[0], pixels_g[newsize-1], pixels_g[(newsize*(newsize-1))], pixels_g[(newsize*newsize)-1]]
-
-    mx = max(corner_pixels)
-    diff = 0
-    for i in corner_pixels:
-        if mx - i >= 50:
-            diff += 1
-    mx_is_bg = True if diff < 3 else False
-
-    colour_pixels = []
-    for i in range(len(pixels_g)):
-        is_diff = (abs(mx - pixels_g[i]) >= 50)
-        if is_diff == mx_is_bg:
-            colour_pixels.append(img_c[i])
-
-    rgb = [0, 0, 0]
-    for i in colour_pixels:
-        for j in range(3):
-            rgb[j] += i[j]
-
-    rgb = tuple(map(lambda x: round(x/len(colour_pixels)), rgb))
+def trainColourNN(name, newname, rate, epochs, batch_size):
     
-    return rgb
+    data, results, existing_colours = procColour()
 
-def testingcolours():
-    x, y, lis = colour_proc()
+    train_data = data[:2001]
+    train_res = results[:2001]
 
-    red = get_rgb("Lego/green.jpg")
-    nn = NeuralNetwork2.upload_saved("colour1")
+    test_data = data[2001:]
+    test_res = results[2001:]
 
-    clo = []
-    for i in red:
-        clo.append([i/255])
+    nn = NeuralNetwork.retrieve_saved(name, newname)
+    nn.train(train_data, train_res, rate, epochs, batch_size)
+    nn.saveNN()
 
-    pred = nn.propagate_forwards(clo)
-    res = [x[0] for x in pred]
+    NN_TEST(test_data, test_res, newname)
 
-    guess = lis[getMax(res)]
+def main():
+    elems, colours, colourelem_hashtable, number_hashtable = retrieveLegoData()
+    sys = mainProgramStack(elems, colours, colourelem_hashtable, number_hashtable)
+    retrieveSetData(sys)
+    sys.push("Homescreen(sys)")
+    while True:
+        eval(sys.peek())
 
-    print(guess)
-
-def uploadData():
-    f = open("information.txt", "r")
-    elem_no = 10
-    colour_no = 14
-    elem_list = []
-    colour_list = []
-    id_table = Hashtable(179)
-    total =0
-
-    for i in range(elem_no):
-        elem_list.append(f.readline()[:-1])
-
-    for i in range(colour_no):
-        colour_list.append(f.readline()[:-1])        
-
-    for elem in elem_list:
-        for colour in colour_list:
-            id = f.readline()[:-1]
-            if id != "-":
-                total +=1
-                input = int(elem + str(colour_list.index(colour)))
-                hash_index = id_table.hashKey(input)
-                id_table.setItem(hash_index, input, id)
-    f.close()
-
-    return elem_list, colour_list, id_table
-
-def getID(elem, colour, colour_list, hash_table):
-    input = int(elem + str(colour_list.index(colour)))
-    hash_index = hash_table.hashKey(input)
-    return hash_table.getItem(hash_index, input)
-
-
-def getElem(path, elem_list):
-    #prepare image
-    img = Image.open(path)
-    img = ImageEnhance.Color(img).enhance(0)
-    img_g = img.getdata()
-    bgpixel = img_g[0][0]
-    if bgpixel > 128:
-        img = aug.invert(img)
-        
-        if bgpixel < 205:
-            img = ImageEnhance.Brightness(img).enhance(0.5)
-    else:
-        if bgpixel > 50:
-            img = ImageEnhance.Brightness(img).enhance(0.5)
-
-    img = aug.aspect(img, "max")
-    img = aug.sharpness(img)
-    newsize = 64
-    img.thumbnail((newsize, newsize))
-    img.show()
-
-    #turn image into data
-    temp_row = []
-    data_matrix = []
-    for i in img.getdata():
-        temp_row.append(i[0] / 255)
-        if len(temp_row) == newsize:
-            data_matrix.append(temp_row)
-            temp_row = []
-
-    #feed data into neural network
-    elem_nn = NeuralNetwork2.upload_saved("love")
-    output = elem_nn.propagate_forwards([data_matrix])
-    output = [x[0] for x in output]
-    elem = elem_list[getMax(output)]
-    
-    return elem
-
-
-def getColour(path, colour_list):
-    rgb = get_rgb(path)
-    rgb = [[x/255] for x in rgb]
-
-    colour_nn = NeuralNetwork2.upload_saved("colour1")
-    output = colour_nn.propagate_forwards(rgb)
-    output = [x[0] for x in output]
-    colour = colour_list[getMax(output)]
-
-    return colour
-
-
-def getInformation(path, elem_list, colour_list, hash_table):
-    elem = getElem(path, elem_list)
-    colour = getColour(path, colour_list)
-    id = getID(elem, colour, colour_list, hash_table)
-
-    print(f"Element: {elem}\nColour: {colour}\nLego number: {id}")
-
-'''
-elem_list, colour_list, id_table = uploadData()
-path = "Lego/yellow54200.jpg"
-
-getInformation(path, elem_list, colour_list, id_table)'''
+main()
