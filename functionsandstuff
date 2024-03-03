@@ -3,17 +3,17 @@ import os
 import time
 from PIL import Image, ImageEnhance
 from augmentation import aug
-from NN2 import NeuralNetwork2
+from NN2 import NeuralNetwork
 from hashtable import *
 from sets import *
 import numpy as np
 
-#Program screens
+#Program states/screens
 
 def Homescreen(sys):
     while True:
         os.system('cls')
-        print("welcome user. What action would you like to perform.\nq- Quit program\n1- View my sets\n2- Begin scanning\nPLease input your option.")
+        print("Welcome user. What action would you like to perform.\nq- Quit program\n1- View my sets\n2- Begin scanning\nPlease input your option.")
         option = input("Option: ")
         if option.upper() == "Q":
             quit()
@@ -31,13 +31,18 @@ def ViewAllSets(sys):
     while True:
         os.system('cls')
         if len(allsets) == 0:
-            print("It appears you do not have any sets so far. Consider creating one.\nq- Return to homescreen\n n- Create a set")
+            print("It appears you do not have any sets so far. Consider creating one.\nq- Return to homescreen\nn- Create a set")
+            option = input("Option: ")
         else:
-            print("Input the number of the set you would like to view, or input 'n' to create a new set.\nq- Return to homescreen\n n- Create a new set")
+            print("Input the number of the set you would like to view, or input 'n' to create a new set.\nq- Return to homescreen\nn- Create a new set\nd- Delete a set")
             print("Your sets:")
             for i in range(len(allsets)):
                 print(f"{i+1}- {allsets[i].getName()}")
-        option = input("Option: ")
+            option = input("Option: ")
+            #delete a set, by set name
+            if option.upper() == "D":
+                sys.push("DeleteSetOption(sys)")
+                break
         if option.upper() == "Q":
             sys.pop()
             break
@@ -53,17 +58,301 @@ def ViewAllSets(sys):
             except:
                 message = input("Invalid input. Press enter to try again...")
 
+def DeleteSetOption(sys):
+    allsets = sys.getAllSets().getSet()
+    valid = [x.getName() for x in allsets]
+    while True:
+        os.system('cls')
+        print("Your sets:")
+        for i in allsets:
+            print(f"- {i.getName()}")
+        option = input("\nInput 'q' to cancel, otherwise, enter the name of the set you would like to delete.\nOption: ")
+        if option.upper() == "Q":
+            sys.pop()
+            break
+        elif option in valid:
+            setobj = allsets[[x.getName() for x in allsets].index(option)]
+            while True:
+                os.system('cls')
+                confirm = input(f"Are you sure you want to delete {option}? y/n: ")
+                if confirm.upper() == "N":
+                    message = input("\nCancelling deletion. Press enter to continue...")
+                    break
+                elif confirm.upper() == "Y":
+                    sys.getAllSets().removeSet(setobj)
+                    updateAllsetsFile(sys.getAllSets())
+                    os.remove(f"userinfo/{option}.txt")
+                    message = input(f"\nSet '{option}' has been deleted. Press Enter to continue...")
+                    break
+                else:
+                    message = input("Invalid input. Press enter to try again...")
+            sys.pop()
+            break
+        else:
+            message = input("Invalid input. Press enter to try again...")
         
 def CreateSetOption(sys):
-    pass
+    allsets = sys.getAllSets().getSet()
+    invalidnames = [x.getName() for x in allsets]
+
+    while True:
+        setname = input("Input a name for your new set: ")
+        if setname not in invalidnames and len(setname) > 1:
+            while True:
+                confirm = input(f"'{setname}' to be created. Confirm creation? y/n: ")
+                if confirm.upper() == "N":
+                    break
+                elif confirm.upper() == "Y":
+                    setobj = Set(setname)
+                    sys.getAllSets().addSet(setobj)
+                    updateAllsetsFile(sys.getAllSets())
+                    f2 = open(f"userinfo/{setname}.txt", "w")
+                    #initialises stored info on sort and hasReq as 0 
+                    f2.write("0\n0\n")
+                    f2.close()
+                    message = input(f"New set'{setname}' has been successfully created! Press enter to continue...")
+                    break
+                else:
+                    message = input("Invalid input. Press enter to try again...")                 
+            sys.pop()
+            break
+        else:
+            if len(setname) <= 1:
+                message = input("Set name must be longer than 1 character. Please try a different name...")
+            else:
+                message = input("Set name already exists. Please try a different name...")
+
 
 def ViewASet(sys):
-    pass
+    cset = sys.getSet()
+    sortedset = cset.getSortedSet()
+    req = True if cset.getHasRequired() == 1 else False
+    while True:
+        os.system('cls')
+        print(f"Set name: {cset.getName()}\nSort by: {cset.getSortName(cset.getSort())}\n'Required amount' column: {req}\n")
+        if len(sortedset) == 0:
+            print("You do not appear to have any LEGOs in this set. Consider adding some.")
 
+        for i in sortedset:
+            print(f"- LEGO number: {i.getLegoNumber()}   Element number: {i.getElem()}   Colour: {i.getColour()}   Amount: {i.getAmount()}   ", end = "")
+            if req:
+                print(f"Required: {i.getRequired()}   Needed to complete: {i.getNeededToComplete()}")
+            else:
+                print("")
+        print("\nWhat action would you like to take.\nq- Go back\nn- Change the name of the set\ns- Change the sort of the set\nr- Toggle Required column of set\ne- Edit amounts of items, or remove items from set\na- Add items to set")
+        option = input("Option: ")
+        if option.upper() == "Q":
+            sys.pop()
+            break
+        elif option.upper() == "N":
+            sys.push("ChangeSetName(sys)")
+            break
+        elif option.upper() == "S":
+            sys.push("ChangeSetSort(sys)")
+            break
+        elif option.upper() == "R":
+            message = input(f"'Required amount' column set to {not req}. Press enter to commit change...")
+            cset.setHasRequired(0 if req else 1)
+            updateSetFile(cset)
+            break
+        elif option.upper() == "E":
+            sys.push("EditSet(sys)")
+            break
+        elif option.upper() == "A":
+            sys.push("AddByWhatOption(sys)")
+            break
+        else:
+            message = input("Invalid input. Press enter to try again...")
+
+def ChangeSetName(sys):
+    cset = sys.getSet()
+    allsets = sys.getAllSets().getSet()
+    invalidnames = [x.getName() for x in allsets]
+    while True:
+        os.system('cls')
+        print("Input 'q' to cancel, otherwise please enter the new name of the set.")
+        newname = input("New name: ")
+        if newname.upper() == "Q":
+            sys.pop()
+            break
+        elif newname not in invalidnames and len(newname) > 1:
+            while True:
+                confirm = input(f"Set name to be changed to '{newname}'. Confirm change? y/n: ")
+                if confirm.upper() == "N":
+                    break
+                elif confirm.upper() == "Y":
+                    currentname = cset.getName()
+                    cset.setName(newname)
+                    updateAllsetsFile(sys.getAllSets())
+                    os.remove(f"userinfo/{currentname}.txt")
+                    updateSetFile(cset)
+                    message = input(f"Set name successfully changed from '{currentname}' to '{newname}'. Press enter to continue...")
+                    break
+                else:
+                    message = input("Invalid input. Press enter to try again...")                 
+            sys.pop()
+            break
+        else:
+            if len(newname) <= 1:
+                message = input("Set name must be longer than 1 character. Please try a different name...")
+            else:
+                message = input("Set name already exists. Please try a different name...")
+
+def ChangeSetSort(sys):
+    cset = sys.getSet()
+    while True:
+        os.system('cls')
+        print("Please select how you would like to sort your set, or input 'q' to go back.\nq- Go back")
+        for i in range(14):
+            print(f"{i}- {cset.getSortName(i)}")
+        option = input("Option: ")
+        if option.upper() == "Q":
+            sys.pop()
+            break
+        else:
+            try:
+                newsort = cset.getSortName(int(option))
+                cset.setSort(int(option))
+                updateSetFile(cset)
+                message = input(f"Option {option} selected: set will be sorted by '{newsort}'. Press enter to return...")
+                sys.pop()
+                break
+            except:            
+                message = input("Invalid input. Press enter to try again...")
+
+def EditSet(sys):
+    cset = sys.getSet()
+    sortedset = cset.getSortedSet()
+    req = True if cset.getHasRequired() == 1 else False
+    if len(sortedset) == 0:
+        os.system('cls')
+        messgae = input("You do not have any LEGOs to edit. Press enter to return...")
+        sys.pop()
+    else:
+        while True:
+            os.system('cls')
+            for i in sortedset:
+                print(f"- LEGO number: {i.getLegoNumber()}   Element number: {i.getElem()}   Colour: {i.getColour()}   Amount: {i.getAmount()}   ", end = "")
+                if req:
+                    print(f"Required: {i.getRequired()}   Needed to complete: {i.getNeededToComplete()}")
+                else:
+                    print("")
+            print("\nInput 'q' to go back, or enter the LEGO number of the item you would like to edit.")
+            option = input("Option: ")
+            if option.upper() == "Q":
+                sys.pop()
+                break
+            elif option in [x.getLegoNumber() for x in sortedset]:
+                legoObj = sortedset[[x.getLegoNumber() for x in sortedset].index(option)]
+                while True:
+                    os.system('cls')
+                    if req:
+                        print(f"- LEGO number: {legoObj.getLegoNumber()}   Element number: {legoObj.getElem()}   Colour: {legoObj.getColour()}   Amount: {legoObj.getAmount()}   ", end = "")
+                        if req:
+                            print(f"Required: {legoObj.getRequired()}   Needed to complete: {legoObj.getNeededToComplete()}")
+
+                        print(f"\n{option} selected. What action would you like to perform with this item?\nq- Cancel\n1- Delete this item\n2- Edit amount\n3- Edit Required amount")
+                        option2 = input("Option: ")
+                        if option2 == "3":
+                            print("Input the new required amount.")
+                            amount = getAmountAsInput()
+                            legoObj.setRequired(int(amount))
+                            updateSetFile(cset)
+                    else:
+                        print(f"{option} selected. What action would you like to perform with this item?\nq- Cancel1- Delete this item\n2- Edit amount")
+                        option2 = input("Option: ")
+                    if option2.upper() == "Q":
+                        break
+                    elif option2 == "1":
+                        cset.removeLego(legoObj)
+                        updateSetFile(cset)
+                        message = input(f"Item {option} has been deleted. Press enter to continue...")
+                        break
+                    elif option2 == "2":
+                        print("Input the new amount.")
+                        amount = getAmountAsInput()
+                        legoObj.setAmount(int(amount))
+                        updateSetFile(cset)
+                    else:
+                        message = input("Invalid input. Press enter to try again...")
+                        
+                break
+            else:
+                message = input("Invalid input. Press enter to try again...")
+
+def AddByWhatOption(sys):
+    while True:
+        os.system('cls')
+        print("How would you like to add an item?\nq- Go back\n1- Scan item\n2- Add item by LEGO number")
+        option = input("Option: ")
+        if option.upper() == "Q":
+            sys.pop()
+            break
+        elif option == "1":
+            sys.push("UploadImageOptions(sys)")
+            break
+        elif option == "2":
+            sys.push("AddByNumber(sys)")
+            break
+        else:
+            message = input("Invalid input. Press enter to try again...")
+
+def AddByNumber(sys):
+    req = sys.getSet().getHasRequired() == 1
+    itemsinset = [x.getLegoNumber() for x in sys.getSet().getSet()]
+    while True:
+        os.system('cls')
+        print("Input 'q' to cancel, otherwise enter the LEGO number of the item you would like to add.")
+        option = input("LEGO number: ")
+
+        if option.upper() == "Q":
+            sys.pop()
+            break
+        elif option in itemsinset:
+            message = input("\nCannot add item, since item already exists in the selected set. Press enter to continue...")
+        else:
+            try:
+                option = int(option)
+                hashtable = sys.getNumberHashtable()
+                index = hashtable.hashKey(option)
+                Item = hashtable.getItem(index, option)
+                option = str(option)
+                if Item == False:
+                    print("This item does not exist in the database.")
+                    x = 1/0
+                else:
+                        os.system('cls')
+                        print(f"LEGO number: {option}, Elem: {Item.split(",")[0]}, Colour: {Item.split(",")[1]}")
+                        print("\nInput the amount you would like to add")
+                        amount = getAmountAsInput()
+                        if req:
+                            print("\nInput the 'required' amount for this item.")
+                            reqamount = getAmountAsInput()
+
+                        while True:
+                            os.system('cls')
+                            print(f"LEGO number: {option}, Elem: {Item.split(",")[0]}, Colour: {Item.split(",")[1]}")
+                            print(f"Amount to add: {amount}")
+                            print(f"Required amount of item: {reqamount}" if req else "")
+                            confirm = input("Confirm addition of item to set? y/n: ")
+                            if confirm.upper() == "N":
+                                message = input("Addition cancelled. Press enter to continue...")
+                                sys.pop()
+                                break
+                            elif confirm.upper() == "Y":
+                                message = input("Item being added to set.\nPress enter to continue...")
+                                addItemToSet(sys, option, sys.getSet(), amount, reqamount if req else 0)
+                                sys.pop()
+                                break
+                            else:
+                                message = input("Invalid LEGO numeber. Press enter to try again...")
+            except:
+                message = input("Invalid input. Press enter to try again...")
+            
 def UploadImageOptions(sys):
     while True:
         os.system('cls')
-        option = input("How would you like to scan your LEGO?\nq- Return to homescreen\n1- Choose an image file of my LEGO piece\n2- Use phone camera to scan LEGO piece\nOption: ")
+        option = input("How would you like to scan your LEGO?\nq- Go back\n1- Choose an image file of my LEGO piece\n2- Use phone camera to scan LEGO piece\nOption: ")
         if option.upper() == "Q":
             sys.pop()
             break
@@ -128,7 +417,7 @@ def HelpUsingCamera(sys):
     print("- Begin recording from the app. On IP Webcam, scroll to the bottom and select 'start server'.")
     print("- Take note of the IPv4 of the recording. This is displayed on the screen as you record on IP Webcam.")
     print("- Ensure you input the correct IPv4 into the program. This will allow it to connect to your phone camera.")
-    print("- When you are ready to use your camera, enter the recording on your app, before pressing the 'use phone camera' option in the program.")
+    print("- When you are ready to use your camera, enter the recording on your app, before selecting the 'use phone camera' option in the program.")
     print("- Postion the camera above the Lego piece and press the -spacebar- on the keyboard to capture the image for the program to use.")
     print("- Remember: for best results, take a good image of the LEGO piece. This includes using a block-colour background, preferrably black or white.")
     print("- It also means containing the whole LEGO piece in the image, with good lighting (minimal shadows or glare) and an image that is not blurry.")
@@ -204,31 +493,73 @@ def Validation(sys):
     colour_list = sys.getColours()
     hashtable = sys.getHashtable()
 
-    elem, colour, id = getInformation(img, elem_list, colour_list, hashtable)
-    if not id:
+    elem, colour, legonum = getInformation(img, elem_list, colour_list, hashtable)
+    if not legonum:
         os.system('cls')
         message = input("LEGO not detected. Please try again, ensuring you are using a good image.\nPress enter to continue...")
         sys.pop()
     else:
         while True:
             os.system('cls')
-            print(f"Colour: {colour}, Element: {elem}, LEGO number: {id}")
+            print(f"Colour: {colour}, Element: {elem}, LEGO number: {legonum}")
             option = input("Is this information correct? y/n: ")
             if option.upper() == "N":
                 message = input("Apologies. Please try again, ensuring you are using a good image.\nPress enter to continue...")
                 sys.pop()
                 break
             elif option.upper() == "Y":
-                print("yey")
-                time.sleep(0.5)
+                os.system('cls')
+                print("Delightful.")
+                while True:
+                    addtoset = input("Would you like to add this item to a set? y/n: ")
+                    if addtoset.upper() == "N":
+                        message = input("Understood.\nPress enter to continue...")
+                        break
+                    elif addtoset.upper() == "Y":
+                        allsets = sys.getAllSets().getSet()
+                        allsetnames = [x.getName() for x in allsets]
+                        while True:
+                            os.system('cls')
+                            print("Your sets:")
+                            for i in allsets:
+                                print(f"- {i.getName()}")
+
+                            print("\nInput 'q' to cancel, otherwise please input the name of the set you would like to add the item to.")
+                            settoaddto = input("Set: ")
+                            if settoaddto.upper() == "Q":
+                                break
+                            elif settoaddto in allsetnames:
+                                chosenset = allsets[allsetnames.index(settoaddto)]
+                                req = chosenset.getHasRequired() == 1
+                                itemsinset = [x.getLegoNumber() for x in chosenset.getSet()]
+                                if legonum in itemsinset:
+                                    message = input("\nCannot add item, since item already exists in the selected set. Press enter to continue...")
+                                else:
+                                    os.system('cls')
+                                    print("Input amount to enter: ")
+                                    amount = getAmountAsInput()
+                                    if req:
+                                        print("\nInput required amount for this item: ")
+                                        reqamount = getAmountAsInput()
+                                    desc = f"LEGO number: {legonum}, Element: {elem}, Colour: {colour}, Amount: {amount}"
+                                    if req:
+                                        desc += f", Required amount: {reqamount}"
+                                    print(desc)
+                                    message = input("\nItem being added to set. Press enter to continue...")
+                                    addItemToSet(sys, legonum, chosenset, amount, reqamount if req else 0)
+                            else:
+                                message = input("Invalid set name.\nPress enter to try again...")
+                        break
+                    else:
+                        message = input("Invalid input. Press enter to try again...")                            
                 sys.pop()
                 break
             else:
-                print("Invalid input.")
-                time.sleep(1)
+                message = input("Invalid input. Press enter to try again...")   
 
 
 #Functions used in identifying Lego Piece
+                
 def getMax(lis):
     mx = 0
     c = 0
@@ -278,8 +609,68 @@ def get_rgb(img):
     
     return rgb
 
+def getID(elem, colour, colour_list, colourelem_hashtable):
+    input = int(elem + str(colour_list.index(colour)))
+    hash_index = colourelem_hashtable.hashKey(input)
+    return colourelem_hashtable.getItem(hash_index, input)
 
-def uploadData():
+def getElem(img, elem_list):
+    #prepare image
+    img = ImageEnhance.Color(img).enhance(0)
+    img_g = img.getdata()
+    bgpixel = img_g[0][0]
+    if bgpixel > 128:
+        img = aug.invert(img)
+        
+        if bgpixel < 205:
+            img = ImageEnhance.Brightness(img).enhance(0.5)
+    else:
+        if bgpixel > 50:
+            img = ImageEnhance.Brightness(img).enhance(0.5)
+
+    img = aug.aspect(img, "max")
+    img = aug.sharpness(img)
+    newsize = 64
+    img.thumbnail((newsize, newsize))
+
+    #turn image into data
+    temp_row = []
+    data_matrix = []
+    for i in img.getdata():
+        temp_row.append(i[0] / 255)
+        if len(temp_row) == newsize:
+            data_matrix.append(temp_row)
+            temp_row = []
+
+    #feed data into neural network
+    elem_nn = NeuralNetwork.retrieve_saved("final")
+    output = elem_nn.propagate_forwards([data_matrix])
+    output = [x[0] for x in output]
+    elem = elem_list[getMax(output)]
+    
+    return elem
+
+def getColour(img, colour_list):
+    rgb = get_rgb(img)
+    rgb = [[x/255] for x in rgb]
+
+    colour_nn = NeuralNetwork.retrieve_saved("colour1")
+    output = colour_nn.propagate_forwards(rgb)
+    output = [x[0] for x in output]
+    colour = colour_list[getMax(output)]
+
+    return colour
+
+def getInformation(img, elem_list, colour_list, colourelem_hashtable):
+    elem = getElem(img, elem_list)
+    colour = getColour(img, colour_list)
+    id = getID(elem, colour, colour_list, colourelem_hashtable)
+
+    return elem, colour, id
+
+#Initialises set data from files for system
+
+def retrieveLegoData():
     f = open("information.txt", "r")
     elem_no = 10
     colour_no = 14
@@ -310,73 +701,11 @@ def uploadData():
 
     return elem_list, colour_list, colourelem_table, number_table
 
-def getID(elem, colour, colour_list, colourelem_hashtable):
-    input = int(elem + str(colour_list.index(colour)))
-    hash_index = colourelem_hashtable.hashKey(input)
-    return colourelem_hashtable.getItem(hash_index, input)
-
-
-def getElem(img, elem_list):
-    #prepare image
-    img = ImageEnhance.Color(img).enhance(0)
-    img_g = img.getdata()
-    bgpixel = img_g[0][0]
-    if bgpixel > 128:
-        img = aug.invert(img)
-        
-        if bgpixel < 205:
-            img = ImageEnhance.Brightness(img).enhance(0.5)
-    else:
-        if bgpixel > 50:
-            img = ImageEnhance.Brightness(img).enhance(0.5)
-
-    img = aug.aspect(img, "max")
-    img = aug.sharpness(img)
-    newsize = 64
-    img.thumbnail((newsize, newsize))
-    #img.show()
-
-    #turn image into data
-    temp_row = []
-    data_matrix = []
-    for i in img.getdata():
-        temp_row.append(i[0] / 255)
-        if len(temp_row) == newsize:
-            data_matrix.append(temp_row)
-            temp_row = []
-
-    #feed data into neural network
-    elem_nn = NeuralNetwork2.upload_saved("love")
-    output = elem_nn.propagate_forwards([data_matrix])
-    output = [x[0] for x in output]
-    elem = elem_list[getMax(output)]
-    
-    return elem
-
-def getColour(img, colour_list):
-    rgb = get_rgb(img)
-    rgb = [[x/255] for x in rgb]
-
-    colour_nn = NeuralNetwork2.upload_saved("colour1")
-    output = colour_nn.propagate_forwards(rgb)
-    output = [x[0] for x in output]
-    colour = colour_list[getMax(output)]
-
-    return colour
-
-def getInformation(img, elem_list, colour_list, colourelem_hashtable):
-    elem = getElem(img, elem_list)
-    colour = getColour(img, colour_list)
-    id = getID(elem, colour, colour_list, colourelem_hashtable)
-
-    return elem, colour, id
-
-#Initialises set data from files for system
 def retrieveSetData(sys):
     allsetfile = open("userinfo/AllUserSets.txt", "r")
-    allsetdata = allsetfile.readline().strip(",")
+    allsetdata = allsetfile.readline().split(",")[:-1]
     allsetfile.close()
-    allsetobj = AllSets
+    allsetobj = AllSets()
     for setname in allsetdata:
         setobj = Set(setname)
         setdata = []
@@ -384,10 +713,10 @@ def retrieveSetData(sys):
         for i in setfile:
             setdata.append(i[:-1])
         setobj.setSort(int(setdata[0]))
-        setobj.setRequired(int(setdata[1]))
+        setobj.setHasRequired(int(setdata[1]))
         for legopiece in setdata[2:]:
-            legodata = legopiece.strip(",")
-            legoobj = Lego(legodata[0], sys.getNumberHastable())
+            legodata = legopiece.split(",")
+            legoobj = Lego(legodata[0], sys.getNumberHashtable())
             legoobj.setAmount(int(legodata[1]))
             if setobj.getHasRequired():
                 legoobj.setRequired(int(legodata[2]))
@@ -396,3 +725,34 @@ def retrieveSetData(sys):
         setfile.close()
     sys.setAllSets(allsetobj)
     
+def updateSetFile(aset):
+    f = open(f"userinfo/{aset.getName()}.txt", "w")
+    f.write(f"{aset.getSort()}\n")
+    f.write(f"{aset.getHasRequired()}\n")
+    for i in aset.getSet():
+        f.write(f"{i.getLegoNumber()},{i.getAmount()},{i.getRequired()}\n")
+    f.close()
+
+def updateAllsetsFile(allset):
+    f = open("userinfo/AllUserSets.txt", "w")
+    for i in allset.getSet():
+        f.write(f"{i.getName()},")
+    f.close()
+
+def getAmountAsInput():
+    while True:
+        amount = input("Amount: ")
+        try:
+            if int(amount) >= 0:
+                return amount
+            else:
+                print("Amount must be a positive integer. Try again.")
+        except:
+            print("Amount must be a number. Try again.")
+
+def addItemToSet(sys, legonum, aset, amount, reqamount=0):
+    legoobj = Lego(legonum, sys.getNumberHashtable())
+    legoobj.setAmount(int(amount))
+    legoobj.setRequired(int(reqamount))
+    aset.addLego(legoobj)
+    updateSetFile(aset)
