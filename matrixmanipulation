@@ -17,8 +17,9 @@ class mm:
             matrix.append(matrixrow)
         return matrix
     
+    #prod?
     @staticmethod
-    def dotprod(a, b):
+    def prod(a, b):
         matrix = []
         if mm.dim(a)[1] != mm.dim(b)[0]:
             return "\nError: cannot compute dot product with given matrix dimensions"
