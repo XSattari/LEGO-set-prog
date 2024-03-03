@@ -46,3 +46,62 @@ class Hashtable:
         
     def getNumberOfItems(self):
         return self.no_of_items
+
+class mainProgramStack:
+    def __init__(self, elems, colours, colourelem_hashtable, number_hashtable):
+        self.stack = []
+        self.pointer = 0
+        self.currentimg = None
+        self.currentset = None
+        self.elems = elems
+        self.colours = colours
+        self.hashtable = colourelem_hashtable
+        self.number_hashtable = number_hashtable
+        self.allSets = None
+
+    def push(self, state):
+        self.stack.append(state)
+        self.pointer+=1
+
+    def pop(self):
+        if self.pointer > 0:
+            self.stack.pop()
+            self.pointer -= 1
+        else:
+            print("Stack empty")
+
+    def peek(self):
+        if self.pointer > 0:
+            return self.stack[self.pointer-1]
+        else:
+            print("Stack empty")
+
+    def getElems(self):
+        return self.elems
+    
+    def getColours(self):
+        return self.colours
+    
+    def getHashtable(self):
+        return self.hashtable
+    
+    def getNumberHashtable(self):
+        return self.number_hashtable
+
+    def getImg(self):
+        return self.currentimg
+    
+    def setImg(self, new):
+        self.currentimg = new
+
+    def getSet(self):
+        return self.currentset
+    
+    def setSet(self, new):
+        self.currentset = new
+
+    def getAllSets(self):
+        return self.allSets
+    
+    def setAllSets(self, new):
+        self.allSets = new
