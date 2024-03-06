@@ -1,12 +1,10 @@
 import cv2
 import os
-import time
 from PIL import Image, ImageEnhance
 from augmentation import aug
 from NN2 import NeuralNetwork
 from hashtable import *
 from sets import *
-import numpy as np
 
 #Program states/screens
 
@@ -252,15 +250,11 @@ def EditSet(sys):
                             print(f"Required: {legoObj.getRequired()}   Needed to complete: {legoObj.getNeededToComplete()}")
 
                         print(f"\n{option} selected. What action would you like to perform with this item?\nq- Cancel\n1- Delete this item\n2- Edit amount\n3- Edit Required amount")
-                        option2 = input("Option: ")
-                        if option2 == "3":
-                            print("Input the new required amount.")
-                            amount = getAmountAsInput()
-                            legoObj.setRequired(int(amount))
-                            updateSetFile(cset)
+
                     else:
                         print(f"{option} selected. What action would you like to perform with this item?\nq- Cancel1- Delete this item\n2- Edit amount")
-                        option2 = input("Option: ")
+                    option2 = input("Option: ")
+
                     if option2.upper() == "Q":
                         break
                     elif option2 == "1":
@@ -268,6 +262,11 @@ def EditSet(sys):
                         updateSetFile(cset)
                         message = input(f"Item {option} has been deleted. Press enter to continue...")
                         break
+                    elif req and option2 == "3":
+                        print("Input the new required amount.")
+                        amount = getAmountAsInput()
+                        legoObj.setRequired(int(amount))
+                        updateSetFile(cset)
                     elif option2 == "2":
                         print("Input the new amount.")
                         amount = getAmountAsInput()
@@ -402,8 +401,7 @@ def UseCameraOption(sys):
             break
         elif option == "3":
             if ip == None:
-                print("First input an IPv4 to select this option.")
-                time.sleep(2)
+                message = input("First input an IPv4 to select this option.")
             else:                
                 sys.push("UseCamera(sys)")
                 break
@@ -643,7 +641,7 @@ def getElem(img, elem_list):
             temp_row = []
 
     #feed data into neural network
-    elem_nn = NeuralNetwork.retrieve_saved("final")
+    elem_nn = NeuralNetwork.retrieve_saved("elem_nn")
     output = elem_nn.propagate_forwards([data_matrix])
     output = [x[0] for x in output]
     elem = elem_list[getMax(output)]
@@ -654,7 +652,7 @@ def getColour(img, colour_list):
     rgb = get_rgb(img)
     rgb = [[x/255] for x in rgb]
 
-    colour_nn = NeuralNetwork.retrieve_saved("colour1")
+    colour_nn = NeuralNetwork.retrieve_saved("colour_nn")
     output = colour_nn.propagate_forwards(rgb)
     output = [x[0] for x in output]
     colour = colour_list[getMax(output)]
