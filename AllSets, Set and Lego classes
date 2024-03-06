@@ -118,3 +118,4 @@ class Lego:
 
     def getNeededToComplete(self):
         return 0 if self.amount >= self.requiredAmount else self.requiredAmount - self.amount
+
