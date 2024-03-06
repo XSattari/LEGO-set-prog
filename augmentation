@@ -21,7 +21,6 @@ class aug:
         #both brightness and contrast augmentation have the effect of dimming image. Thus, if both applied then larger dist. of dim images.
         #therefore, only one of the two shall be applied
 
-        #invert 1/2 of images if inv
         if inv:
             inv = random.randint(1, 2)
             if inv == 2:
