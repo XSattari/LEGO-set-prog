@@ -17,7 +17,6 @@ class mm:
             matrix.append(matrixrow)
         return matrix
     
-    #prod?
     @staticmethod
     def prod(a, b):
         matrix = []
