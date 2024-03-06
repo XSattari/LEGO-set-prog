@@ -343,7 +343,6 @@ def procLego(classes=10, aug_im=False):
     dataset = os.scandir("datasetv2")
     train_data = []
     train_res = []
-
     test_data = []
     test_res = []
     c = 0
@@ -441,10 +440,8 @@ def createColourNN(name):
 def trainColourNN(name, newname, rate, epochs, batch_size):
     
     data, results, existing_colours = procColour()
-
     train_data = data[:2001]
     train_res = results[:2001]
-
     test_data = data[2001:]
     test_res = results[2001:]
 
@@ -463,3 +460,45 @@ def main():
         eval(sys.peek())
 
 main()
+
+
+
+
+
+
+
+
+'''
+# MNIST dataset, retProc function reads images from file, makes them lists, normalises data. Only gets 1024 images
+mnist = retProc(1024)
+data = []
+results = []
+for i in mnist:
+    tm = []
+    trow = []
+    for j in i[0]:
+        trow.append(j)
+        if len(trow) == 28:
+            tm.append(trow)
+            trow = []
+        if len(tm) == 28:
+            data.append([tm])
+            tm = []
+          
+    results.append(mm.alter_dim(i[1], [0,1]))
+# Data and results processed to fit into neural network
+
+
+My_NN = NeuralNetwork.retrieve_saved("My_NN")
+
+NN2 = NeuralNetwork('NN2')
+layers = [["Convolutional", 1, 3, (28,28), (5, 5)], ["ReLU"], ["MaxPooling", (2,2), 2], ["Hidden", 432], ["ReLU"], ["Softmax"], ["Hidden", 10]]
+for layer in layers:
+    NN2.addLayer(layer)
+
+my_nnOutp = My_NN.propagate_forwards(data[1])
+nn2Outp = NN2.propagate_forwards(data[1])
+print(f"My_NN output: {my_nnOutp}\n")
+print(f"NN2 output: {nn2Outp}\n")
+print(f"Expected: {results[1]}")
+'''
