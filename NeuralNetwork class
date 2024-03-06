@@ -146,23 +146,26 @@ class NeuralNetwork:
             file.close()
             NeuralNetwork.savedNetworks.append(self.name)
             NeuralNetwork.savedNetworks.append(str(allLayers))
+            print(f"Neural network {self.name} saved")
             
     def displayLayers(self):
         for layer in self.layers:
-            print(layer.getType())
-            ''''''
+            print(f"Layer: {layer.getType()}")
+
             if layer.getType() == "Hidden":
-                print(layer.getNeurons())
+                print(f"Number of neurons: {layer.getNeurons()}")
                 
-                #print(layer.getWeights())
-                #print(layer.getNLbiases())
+                print(f'Weights matrix: {layer.getWeights()}')
+                print(f"Next layer's biases matrix: {layer.getNLbiases()}")
                 
             if layer.getType() == "Convolutional":
-                #print(layer.getKernels())
-                print(len(layer.getKernels()))
-                #print(layer.getBiases())
+                print(f"Kernels: {layer.getKernels()}")
+                print(f'Output depth: {len(layer.getKernels())}')
+                print(f'Biases: {layer.getBiases()}')
                 
             if layer.getType() == "MaxPooling":
-                print(layer.getSize())
-                print(layer.getStride())
+                print(f"Size: {layer.getSize()}")
+                print(f"Stride: {layer.getStride()}")
+
+            print()
         
