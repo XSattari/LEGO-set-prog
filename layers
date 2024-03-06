@@ -137,7 +137,6 @@ class Softmax(Layer):
         return outp
     
     def backward(self, dE_dO, rate):
-        #uses formula dE_dI = (M hadamard (I-M(transposed))). dE_dO
         matrix = [i*len(self._output) for i in self._output]
         temp = mm.submatrix(mm.identity(len(self._output)), mm.transpose(matrix))
         dE_dI = mm.prod(mm.hadamard(matrix, temp), dE_dO)
